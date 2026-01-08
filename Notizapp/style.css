@@ -13,7 +13,7 @@ body {
 }
 
 /* ================================
-   SIDEBAR (ORDNERBAUM)
+   SIDEBAR
 ================================ */
 .sidebar {
     width: 280px;
@@ -92,7 +92,7 @@ body {
     color: white;
 }
 
-/* Buttons unten in der Sidebar */
+/* Sidebar-Aktionen */
 .folder-actions {
     margin-top: 20px;
     display: flex;
@@ -248,7 +248,7 @@ canvas {
 }
 
 /* ================================
-   SCROLLBAR (optional, schöner)
+   SCROLLBAR
 ================================ */
 ::-webkit-scrollbar {
     width: 10px;
