@@ -1,1 +1,463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Notizsystem – Ordner, Unterordner & Notizen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <h2>Ordner</h2>
+
+        <div id="folderTree"></div>
+
+        <div class="folder-actions">
+            <button id="addFolderBtn">Ordner erstellen</button>
+            <button id="addNoteBtn">Notiz erstellen</button>
+            <button id="renameFolderBtn">Ordner umbenennen</button>
+            <button id="deleteFolderBtn">Ordner löschen</button>
+            <button id="deleteNoteBtn">Notiz löschen</button>
+        </div>
+    </aside>
+
+    <!-- EDITOR-BEREICH -->
+    <main class="editor">
+
+        <div id="noNoteSelected" class="placeholder">
+            Wähle eine Notiz oder einen Ordner aus.
+        </div>
+
+        <div id="folderContents" class="hidden"></div>
+
+        <div id="noteEditor" class="hidden">
+
+            <input id="noteTitle" placeholder="Titel der Notiz">
+
+            <div class="text-toolbar">
+                <button data-cmd="bold"><b>B</b></button>
+                <button data-cmd="italic"><i>I</i></button>
+                <button data-cmd="underline"><u>U</u></button>
+                <button id="moveNoteBtn">Notiz verschieben</button>
+            </div>
+
+            <div id="noteText" contenteditable="true" class="editable"></div>
+
+            <h3>Handschrift</h3>
+
+            <div class="canvas-toolbar">
+                <button id="penButton" class="active">Stift</button>
+                <button id="eraserButton">Radierer</button>
+                <label>Stärke:
+                    <input type="range" id="lineWidth" min="1" max="20" value="3">
+                </label>
+                <input type="color" id="colorPicker" value="#000000">
+                <button id="clearCanvas">Löschen</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="noteCanvas"></canvas>
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<script>
+/* ============================================================
+   DATENSTRUKTUR
+============================================================ */
+let data = JSON.parse(localStorage.getItem("noteSystem")) || {
+    id: "root",
+    name: "Alle Notizen",
+    folders: [],
+    notes: []
+};
+
+let currentFolder = data;
+let currentNote = null;
+
+/* ============================================================
+   SPEICHERN
+============================================================ */
+function save() {
+    localStorage.setItem("noteSystem", JSON.stringify(data));
+}
+
+/* ============================================================
+   ORDNERBAUM RENDERN
+============================================================ */
+function renderFolderTree() {
+    const tree = document.getElementById("folderTree");
+    tree.innerHTML = "";
+    tree.appendChild(renderFolderNode(data));
+}
+
+function renderFolderNode(folder) {
+    const div = document.createElement("div");
+    div.className = "folder-node";
+
+    const header = document.createElement("div");
+    header.className = "folder-header";
+    header.textContent = folder.name;
+
+    if (folder === currentFolder) {
+        header.classList.add("selected");
+    }
+
+    header.addEventListener("click", () => {
+        currentFolder = folder;
+        currentNote = null;
+        showFolderContents(folder);
+        renderFolderTree();
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "folder-buttons";
+
+    const addSub = document.createElement("button");
+    addSub.textContent = "+";
+    addSub.title = "Unterordner erstellen";
+    addSub.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const name = prompt("Name des Unterordners:");
+        if (!name) return;
+        folder.folders.push({
+            id: crypto.randomUUID(),
+            name,
+            folders: [],
+            notes: []
+        });
+        save();
+        renderFolderTree();
+    });
+
+    actions.appendChild(addSub);
+    header.appendChild(actions);
+    div.appendChild(header);
+
+    const children = document.createElement("div");
+    children.className = "folder-children";
+
+    folder.folders.forEach(f => children.appendChild(renderFolderNode(f)));
+
+    folder.notes.forEach(n => {
+        const noteDiv = document.createElement("div");
+        noteDiv.className = "note-entry";
+        noteDiv.textContent = n.title;
+
+        if (n === currentNote) {
+            noteDiv.classList.add("selected");
+        }
+
+        noteDiv.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openNote(n);
+            renderFolderTree();
+        });
+
+        children.appendChild(noteDiv);
+    });
+
+    div.appendChild(children);
+    return div;
+}
+
+/* ============================================================
+   ORDNER-INHALTE ANZEIGEN
+============================================================ */
+function showFolderContents(folder) {
+    const container = document.getElementById("folderContents");
+    container.innerHTML = "";
+    container.classList.remove("hidden");
+
+    document.getElementById("noteEditor").classList.add("hidden");
+    document.getElementById("noNoteSelected").classList.add("hidden");
+
+    const title = document.createElement("h2");
+    title.textContent = folder.name;
+    container.appendChild(title);
+
+    if (folder.folders.length > 0) {
+        const subTitle = document.createElement("h3");
+        subTitle.textContent = "Unterordner:";
+        container.appendChild(subTitle);
+
+        folder.folders.forEach(f => {
+            const div = document.createElement("div");
+            div.className = "folder-list-entry";
+            div.textContent = f.name;
+            div.addEventListener("click", () => {
+                currentFolder = f;
+                currentNote = null;
+                showFolderContents(f);
+                renderFolderTree();
+            });
+            container.appendChild(div);
+        });
+    }
+
+    if (folder.notes.length > 0) {
+        const subTitle = document.createElement("h3");
+        subTitle.textContent = "Notizen:";
+        container.appendChild(subTitle);
+
+        folder.notes.forEach(n => {
+            const div = document.createElement("div");
+            div.className = "note-list-entry";
+            div.textContent = n.title;
+            div.addEventListener("click", () => {
+                openNote(n);
+                renderFolderTree();
+            });
+            container.appendChild(div);
+        });
+    }
+
+    if (folder.folders.length === 0 && folder.notes.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "Dieser Ordner ist leer.";
+        empty.style.color = "#777";
+        container.appendChild(empty);
+    }
+}
+
+/* ============================================================
+   ORDNER UMBENENNEN
+============================================================ */
+document.getElementById("renameFolderBtn").addEventListener("click", () => {
+    if (!currentFolder) return;
+    if (currentFolder.id === "root") {
+        alert("Der Hauptordner kann nicht umbenannt werden.");
+        return;
+    }
+
+    const newName = prompt("Neuer Ordnername:", currentFolder.name);
+    if (!newName) return;
+
+    currentFolder.name = newName;
+    save();
+    renderFolderTree();
+});
+
+/* ============================================================
+   ORDNER LÖSCHEN
+============================================================ */
+document.getElementById("deleteFolderBtn").addEventListener("click", () => {
+    if (!currentFolder) return;
+
+    if (currentFolder.id === "root") {
+        alert("Der Hauptordner kann nicht gelöscht werden.");
+        return;
+    }
+
+    if (!confirm(`Ordner "${currentFolder.name}" wirklich löschen?`)) return;
+
+    deleteFolder(data, currentFolder);
+
+    currentFolder = data;
+    currentNote = null;
+
+    save();
+    renderFolderTree();
+    showFolderContents(currentFolder);
+});
+
+function deleteFolder(parent, folderToDelete) {
+    parent.folders = parent.folders.filter(f => f !== folderToDelete);
+    parent.folders.forEach(f => deleteFolder(f, folderToDelete));
+}
+
+/* ============================================================
+   NOTIZ ÖFFNEN
+============================================================ */
+function openNote(note) {
+    currentNote = note;
+
+    document.getElementById("folderContents").classList.add("hidden");
+    document.getElementById("noNoteSelected").classList.add("hidden");
+    document.getElementById("noteEditor").classList.remove("hidden");
+
+    document.getElementById("noteTitle").value = note.title;
+    document.getElementById("noteText").innerHTML = note.text;
+
+    loadCanvas(note.canvas);
+}
+
+/* ============================================================
+   NOTIZ LÖSCHEN
+============================================================ */
+document.getElementById("deleteNoteBtn").addEventListener("click", () => {
+    if (!currentNote) {
+        alert("Keine Notiz ausgewählt.");
+        return;
+    }
+
+    if (!confirm(`Notiz "${currentNote.title}" wirklich löschen?`)) return;
+
+    removeNoteFromFolder(data, currentNote);
+
+    currentNote = null;
+
+    save();
+    renderFolderTree();
+    showFolderContents(currentFolder);
+});
+
+function removeNoteFromFolder(folder, note) {
+    folder.notes = folder.notes.filter(n => n !== note);
+    folder.folders.forEach(f => removeNoteFromFolder(f, note));
+}
+
+/* ============================================================
+   NOTIZ VERSCHIEBEN
+============================================================ */
+document.getElementById("moveNoteBtn").addEventListener("click", () => {
+    if (!currentNote) return;
+
+    const allFolders = [];
+    collectFolders(data, allFolders);
+
+    const names = allFolders.map(f => f.name).join("\n");
+    const targetName = prompt("In welchen Ordner verschieben?\n\n" + names);
+
+    if (!targetName) return;
+
+    const targetFolder = allFolders.find(f => f.name === targetName);
+    if (!targetFolder) {
+        alert("Ordner nicht gefunden.");
+        return;
+    }
+
+    removeNoteFromFolder(data, currentNote);
+    targetFolder.notes.push(currentNote);
+
+    save();
+    renderFolderTree();
+    currentFolder = targetFolder;
+    showFolderContents(targetFolder);
+});
+
+function collectFolders(folder, list) {
+    list.push(folder);
+    folder.folders.forEach(f => collectFolders(f, list));
+}
+
+/* ============================================================
+   CANVAS
+============================================================ */
+const canvas = document.getElementById("noteCanvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const temp = canvas.toDataURL();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    const img = new Image();
+    img.src = temp;
+    img.onload = () => ctx.drawImage(img, 0, 0);
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+let drawing = false;
+let erasing = false;
+let lastX = 0;
+let lastY = 0;
+
+document.getElementById("penButton").addEventListener("click", () => {
+    erasing = false;
+});
+
+document.getElementById("eraserButton").addEventListener("click", () => {
+    erasing = true;
+});
+
+document.getElementById("clearCanvas").addEventListener("click", () => {
+    if (!currentNote) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    currentNote.canvas = "";
+    save();
+});
+
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x, y };
+}
+
+function startDraw(e) {
+    if (!currentNote) return;
+    e.preventDefault();
+    drawing = true;
+    const pos = getPos(e);
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function draw(e) {
+    if (!drawing || !currentNote) return;
+    e.preventDefault();
+    const pos = getPos(e);
+
+    ctx.lineWidth = document.getElementById("lineWidth").value;
+    ctx.lineCap = "round";
+
+    if (erasing) {
+        ctx.globalCompositeOperation = "destination-out";
+    } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = document.getElementById("colorPicker").value;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+
+    lastX = pos.x;
+    lastY = pos.y;
+
+    currentNote.canvas = canvas.toDataURL();
+    save();
+}
+
+function stopDraw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    drawing = false;
+}
+
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
+
+canvas.addEventListener("touchstart", startDraw, { passive: false });
+canvas.addEventListener("touchmove", draw, { passive: false });
+canvas.addEventListener("touchend", stopDraw, { passive: false });
+canvas.addEventListener("touchcancel", stopDraw, { passive: false });
+
+function loadCanvas(dataURL) {
+    resizeCanvas();
+    if (!dataURL) return;
+    const img = new Image();
+    img.src = dataURL;
+    img.onload = () => ctx.drawImage(img, 0, 0);
+}
+
+/* ============================================================
+   START
+============================================================ */
+renderFolderTree();
+showFolderContents(currentFolder);
+</script>
+
+</body>
+</html>

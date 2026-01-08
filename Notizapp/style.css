@@ -1,0 +1,268 @@
+/* ================================
+   GLOBAL
+================================ */
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #f3f4f6;
+}
+
+.layout {
+    display: flex;
+    height: 100vh;
+}
+
+/* ================================
+   SIDEBAR (ORDNERBAUM)
+================================ */
+.sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #ddd;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+}
+
+/* Ordner-Knoten */
+.folder-node {
+    margin-left: 10px;
+}
+
+/* Ordner-Header */
+.folder-header {
+    padding: 6px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.folder-header:hover {
+    background: #d1d5db;
+}
+
+/* Ausgewählter Ordner */
+.folder-header.selected {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Buttons im Ordner */
+.folder-buttons button {
+    margin-left: 4px;
+    padding: 2px 6px;
+    border: 1px solid #bbb;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.folder-buttons button:hover {
+    background: #eee;
+}
+
+/* Unterordner + Notizen */
+.folder-children {
+    margin-left: 14px;
+}
+
+/* Notiz-Eintrag in der Sidebar */
+.note-entry {
+    padding: 4px 8px;
+    margin-left: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.note-entry:hover {
+    background: #d1d5db;
+}
+
+/* Ausgewählte Notiz */
+.note-entry.selected {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Buttons unten in der Sidebar */
+.folder-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.folder-actions button {
+    padding: 8px;
+    border: 1px solid #bbb;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.folder-actions button:hover {
+    background: #e5e7eb;
+}
+
+/* ================================
+   EDITOR-BEREICH
+================================ */
+.editor {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.placeholder {
+    font-size: 1.2rem;
+    color: #777;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ================================
+   ORDNER-INHALTE (rechte Seite)
+================================ */
+#folderContents {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+}
+
+#folderContents h2 {
+    margin-top: 0;
+}
+
+.folder-list-entry,
+.note-list-entry {
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.folder-list-entry:hover,
+.note-list-entry:hover {
+    background: #e5e7eb;
+}
+
+/* ================================
+   NOTIZ-EDITOR
+================================ */
+#noteTitle {
+    width: 100%;
+    font-size: 1.3rem;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Textformatierung */
+.text-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.text-toolbar button {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.text-toolbar button:hover {
+    background: #e5e7eb;
+}
+
+/* Textfeld */
+.editable {
+    min-height: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: white;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    overflow-y: auto;
+}
+
+/* ================================
+   CANVAS-BEREICH
+================================ */
+.canvas-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.canvas-toolbar button {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.canvas-toolbar button.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+}
+
+.canvas-toolbar button:hover {
+    background: #e5e7eb;
+}
+
+.canvas-wrapper {
+    border: 1px solid #ccc;
+    height: 300px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ================================
+   SCROLLBAR (optional, schöner)
+================================ */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
