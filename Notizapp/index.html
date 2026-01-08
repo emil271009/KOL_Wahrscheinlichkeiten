@@ -348,6 +348,48 @@ function collectFolders(folder, list) {
 }
 
 /* ============================================================
+   GLOBALER ORDNER-BUTTON
+============================================================ */
+document.getElementById("addFolderBtn").addEventListener("click", () => {
+    const name = prompt("Name des neuen Ordners:");
+    if (!name) return;
+
+    data.folders.push({
+        id: crypto.randomUUID(),
+        name,
+        folders: [],
+        notes: []
+    });
+
+    save();
+    renderFolderTree();
+});
+
+/* ============================================================
+   GLOBALER NOTIZ-BUTTON
+============================================================ */
+document.getElementById("addNoteBtn").addEventListener("click", () => {
+    if (!currentFolder) {
+        alert("Bitte wähle zuerst einen Ordner aus.");
+        return;
+    }
+
+    const note = {
+        id: crypto.randomUUID(),
+        title: "Neue Notiz",
+        text: "",
+        canvas: ""
+    };
+
+    currentFolder.notes.push(note);
+    save();
+
+    renderFolderTree();
+    showFolderContents(currentFolder);
+    openNote(note);
+});
+
+/* ============================================================
    CANVAS
 ============================================================ */
 const canvas = document.getElementById("noteCanvas");
