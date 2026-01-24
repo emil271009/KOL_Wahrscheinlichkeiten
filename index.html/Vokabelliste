@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabeltrainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .language-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .language-inputs input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .language-inputs input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .columns-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .column {
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .column.left {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        .column.right {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .column.left .column-header {
+            background: #dbeafe;
+            color: #1e3a8a;
+        }
+
+        .column.right .column-header {
+            background: #dcfce7;
+            color: #14532d;
+        }
+
+        .vocab-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .vocab-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .vocab-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .vocab-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .vocab-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .hidden-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .column.left .hidden-overlay {
+            background: #bfdbfe;
+            color: #93c5fd;
+        }
+
+        .column.right .hidden-overlay {
+            background: #bbf7d0;
+            color: #86efac;
+        }
+
+        .btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-delete:hover:not(:disabled) {
+            background: #fee2e2;
+        }
+
+        .column.left .btn:hover {
+            background: #bfdbfe;
+        }
+
+        .column.right .btn:hover {
+            background: #bbf7d0;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 1rem;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: #4338ca;
+        }
+
+        .instructions {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .instructions h3 {
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            margin-bottom: 0.25rem;
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Vokabeltrainer</h1>
+            <div class="language-inputs">
+                <input type="text" id="leftLang" value="Deutsch" placeholder="Sprache links">
+                <input type="text" id="rightLang" value="English" placeholder="Sprache rechts">
+            </div>
+        </div>
+
+        <div class="columns-container">
+            <div class="column left">
+                <div class="column-header">
+                    <span id="leftLangLabel">Deutsch</span>
+                    <button class="btn" onclick="toggleHideAll('left')" title="Alle ausblenden/anzeigen">
+                        <svg id="eyeLeftAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="vocab-list" id="leftColumn"></div>
+            </div>
+
+            <div class="column right">
+                <div class="column-header">
+                    <span id="rightLangLabel">English</span>
+                    <button class="btn" onclick="toggleHideAll('right')" title="Alle ausblenden/anzeigen">
+                        <svg id="eyeRightAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="vocab-list" id="rightColumn"></div>
+            </div>
+        </div>
+
+        <button class="btn-add" onclick="addRow()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Neue Zeile hinzufügen
+        </button>
+
+        <div class="instructions">
+            <h3>💡 Anleitung:</h3>
+            <ul>
+                <li>• Gib Vokabeln und Übersetzungen ein</li>
+                <li>• Klicke auf das Auge-Symbol in der Spaltenüberschrift, um alle Wörter auszublenden</li>
+                <li>• Klicke auf das Auge-Symbol neben einem Wort, um nur dieses auszublenden</li>
+                <li>• Nutze den Papierkorb, um Zeilen zu löschen</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let vocabs = [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }];
+        let hideAllLeft = false;
+        let hideAllRight = false;
+
+        const eyeOpenSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
+        const eyeClosedSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>';
+        const trashSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+
+        document.getElementById('leftLang').addEventListener('input', (e) => {
+            document.getElementById('leftLangLabel').textContent = e.target.value;
+        });
+
+        document.getElementById('rightLang').addEventListener('input', (e) => {
+            document.getElementById('rightLangLabel').textContent = e.target.value;
+        });
+
+        function render() {
+            const leftColumn = document.getElementById('leftColumn');
+            const rightColumn = document.getElementById('rightColumn');
+            
+            leftColumn.innerHTML = '';
+            rightColumn.innerHTML = '';
+
+            vocabs.forEach(vocab => {
+                // Linke Spalte
+                const leftRow = document.createElement('div');
+                leftRow.className = 'vocab-row';
+                leftRow.innerHTML = `
+                    <div class="vocab-input-wrapper">
+                        <input type="text" class="vocab-input" value="${vocab.left}" 
+                               oninput="updateVocab(${vocab.id}, 'left', this.value)" 
+                               placeholder="Vokabel...">
+                        ${(hideAllLeft || vocab.hideLeft) && vocab.left ? '<div class="hidden-overlay">•••</div>' : ''}
+                    </div>
+                    <button class="btn" onclick="toggleHideIndividual(${vocab.id}, 'hideLeft')" title="Ausblenden">
+                        ${vocab.hideLeft ? eyeClosedSVG : eyeOpenSVG}
+                    </button>
+                `;
+                leftColumn.appendChild(leftRow);
+
+                // Rechte Spalte
+                const rightRow = document.createElement('div');
+                rightRow.className = 'vocab-row';
+                rightRow.innerHTML = `
+                    <div class="vocab-input-wrapper">
+                        <input type="text" class="vocab-input" value="${vocab.right}" 
+                               oninput="updateVocab(${vocab.id}, 'right', this.value)" 
+                               placeholder="Übersetzung...">
+                        ${(hideAllRight || vocab.hideRight) && vocab.right ? '<div class="hidden-overlay">•••</div>' : ''}
+                    </div>
+                    <button class="btn" onclick="toggleHideIndividual(${vocab.id}, 'hideRight')" title="Ausblenden">
+                        ${vocab.hideRight ? eyeClosedSVG : eyeOpenSVG}
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteRow(${vocab.id})" 
+                            title="Zeile löschen" ${vocabs.length === 1 ? 'disabled' : ''}>
+                        ${trashSVG}
+                    </button>
+                `;
+                rightColumn.appendChild(rightRow);
+            });
+
+            // Update eye icons in headers
+            document.getElementById('eyeLeftAll').innerHTML = hideAllLeft ? eyeClosedSVG.replace('<svg', '<svg').replace('</svg>', '') : eyeOpenSVG.replace('<svg', '<svg').replace('</svg>', '');
+            document.getElementById('eyeRightAll').innerHTML = hideAllRight ? eyeClosedSVG.replace('<svg', '<svg').replace('</svg>', '') : eyeOpenSVG.replace('<svg', '<svg').replace('</svg>', '');
+        }
+
+        function addRow() {
+            vocabs.push({ 
+                id: Date.now(), 
+                left: '', 
+                right: '', 
+                hideLeft: false, 
+                hideRight: false 
+            });
+            render();
+        }
+
+        function deleteRow(id) {
+            if (vocabs.length > 1) {
+                vocabs = vocabs.filter(v => v.id !== id);
+                render();
+            }
+        }
+
+        function updateVocab(id, field, value) {
+            vocabs = vocabs.map(v => 
+                v.id === id ? { ...v, [field]: value } : v
+            );
+        }
+
+        function toggleHideIndividual(id, field) {
+            vocabs = vocabs.map(v => 
+                v.id === id ? { ...v, [field]: !v[field] } : v
+            );
+            render();
+        }
+
+        function toggleHideAll(side) {
+            if (side === 'left') {
+                hideAllLeft = !hideAllLeft;
+            } else {
+                hideAllRight = !hideAllRight;
+            }
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
