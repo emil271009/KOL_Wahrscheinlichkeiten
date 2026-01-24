@@ -200,10 +200,318 @@
             justify-content: center;
             gap: 0.5rem;
             transition: background 0.2s;
+            margin-bottom: 1rem;
         }
 
         .btn-add:hover {
             background: #4338ca;
+        }
+
+        .btn-learn {
+            width: 100%;
+            padding: 1rem;
+            background: #059669;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .btn-learn:hover {
+            background: #047857;
+        }
+
+        .btn-learn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .learn-options {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .learn-options h3 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+            font-size: 1.1rem;
+        }
+
+        .direction-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .direction-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .direction-option:hover {
+            border-color: #059669;
+            background: #f0fdf4;
+        }
+
+        .direction-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .direction-option label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        .handwriting-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .handwriting-modal.active {
+            display: flex;
+        }
+
+        .handwriting-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .handwriting-container h3 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .canvas-container {
+            border: 3px solid #4f46e5;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: white;
+            touch-action: none;
+        }
+
+        #handwritingCanvas {
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .handwriting-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-handwriting {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #dc2626;
+        }
+
+        .btn-accept {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background: #059669;
+        }
+
+        .btn-cancel {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        .btn-pen {
+            padding: 0.5rem;
+            background: transparent;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-pen:hover {
+            background: #f3f4f6;
+        }
+
+        .btn-pen svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .flashcard-container {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .flashcard-container.active {
+            display: block;
+        }
+
+        .flashcard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .flashcard-progress {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .flashcard-direction {
+            font-size: 1rem;
+            color: #9ca3af;
+        }
+
+        .flashcard {
+            perspective: 1000px;
+            margin-bottom: 2rem;
+            min-height: 300px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            min-height: 300px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flashcard-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            min-height: 300px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            padding: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-control {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-flip {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-flip:hover {
+            background: #4f46e5;
+        }
+
+        .btn-next {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #059669;
+        }
+
+        .btn-exit {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-exit:hover {
+            background: #dc2626;
+        }
+
+        .edit-container {
+            display: block;
+        }
+
+        .edit-container.hidden {
+            display: none;
         }
 
         .instructions {
@@ -244,40 +552,96 @@
             </div>
         </div>
 
-        <div class="columns-container">
-            <div class="column left">
-                <div class="column-header">
-                    <span id="leftLangLabel">Deutsch</span>
-                    <button class="btn" onclick="toggleHideAll('left')" title="Alle ausblenden/anzeigen">
-                        <svg id="eyeLeftAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="vocab-list" id="leftColumn"></div>
+        <!-- Lernkarten Ansicht -->
+        <div class="flashcard-container" id="flashcardContainer">
+            <div class="flashcard-header">
+                <div class="flashcard-progress" id="flashcardProgress">1 / 10</div>
+                <div class="flashcard-direction" id="flashcardDirection">Deutsch → English</div>
             </div>
 
-            <div class="column right">
-                <div class="column-header">
-                    <span id="rightLangLabel">English</span>
-                    <button class="btn" onclick="toggleHideAll('right')" title="Alle ausblenden/anzeigen">
-                        <svg id="eyeRightAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </button>
+            <div class="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner" id="flashcardInner">
+                    <div class="flashcard-front" id="flashcardFront">
+                        Klicke auf die Karte zum Umdrehen
+                    </div>
+                    <div class="flashcard-back" id="flashcardBack">
+                        Rückseite
+                    </div>
                 </div>
-                <div class="vocab-list" id="rightColumn"></div>
+            </div>
+
+            <div class="flashcard-controls">
+                <button class="btn-control btn-flip" onclick="flipCard()">🔄 Karte umdrehen</button>
+                <button class="btn-control btn-next" onclick="nextCard()">▶️ Nächste Karte</button>
+                <button class="btn-control btn-exit" onclick="exitLearnMode()">❌ Beenden</button>
             </div>
         </div>
 
-        <button class="btn-add" onclick="addRow()">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Neue Zeile hinzufügen
-        </button>
+        <!-- Bearbeitungs Ansicht -->
+        <div class="edit-container" id="editContainer">
+            <div class="columns-container">
+                <div class="column left">
+                    <div class="column-header">
+                        <span id="leftLangLabel">Deutsch</span>
+                        <button class="btn" onclick="toggleHideAll('left')" title="Alle ausblenden/anzeigen">
+                            <svg id="eyeLeftAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="vocab-list" id="leftColumn"></div>
+                </div>
+
+                <div class="column right">
+                    <div class="column-header">
+                        <span id="rightLangLabel">English</span>
+                        <button class="btn" onclick="toggleHideAll('right')" title="Alle ausblenden/anzeigen">
+                            <svg id="eyeRightAll" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="vocab-list" id="rightColumn"></div>
+                </div>
+            </div>
+
+            <button class="btn-add" onclick="addRow()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Neue Zeile hinzufügen
+            </button>
+
+            <button class="btn-learn" id="btnLearn" onclick="startLearnMode()">
+                🎓 Lernkarten starten
+            </button>
+
+            <div class="learn-options">
+                <h3>📋 Lernrichtung wählen:</h3>
+                <div class="direction-options">
+                    <div class="direction-option">
+                        <input type="radio" id="directionBoth" name="direction" value="both" checked>
+                        <label for="directionBoth">
+                            <strong>Beide Richtungen</strong> - <span id="bothDirectionLabel">Deutsch ⇄ English</span>
+                        </label>
+                    </div>
+                    <div class="direction-option">
+                        <input type="radio" id="directionLeftToRight" name="direction" value="left-to-right">
+                        <label for="directionLeftToRight">
+                            <span id="leftToRightLabel">Deutsch → English</span>
+                        </label>
+                    </div>
+                    <div class="direction-option">
+                        <input type="radio" id="directionRightToLeft" name="direction" value="right-to-left">
+                        <label for="directionRightToLeft">
+                            <span id="rightToLeftLabel">English → Deutsch</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="instructions">
             <h3>💡 Anleitung:</h3>
@@ -286,7 +650,24 @@
                 <li>• Klicke auf das Auge-Symbol in der Spaltenüberschrift, um alle Wörter auszublenden</li>
                 <li>• Klicke auf das Auge-Symbol neben einem Wort, um nur dieses auszublenden</li>
                 <li>• Nutze den Papierkorb, um Zeilen zu löschen</li>
+                <li>• Klicke auf das Stift-Symbol, um Wörter handschriftlich einzugeben</li>
+                <li>• Klicke auf "Lernkarten starten" um deine Vokabeln in zufälliger Reihenfolge abzufragen</li>
             </ul>
+        </div>
+
+        <!-- Handschrift Modal -->
+        <div class="handwriting-modal" id="handwritingModal">
+            <div class="handwriting-container">
+                <h3>✍️ Handschriftliche Eingabe</h3>
+                <div class="canvas-container">
+                    <canvas id="handwritingCanvas" width="500" height="300"></canvas>
+                </div>
+                <div class="handwriting-controls">
+                    <button class="btn-handwriting btn-clear" onclick="clearCanvas()">🗑️ Löschen</button>
+                    <button class="btn-handwriting btn-accept" onclick="acceptHandwriting()">✓ Übernehmen</button>
+                    <button class="btn-handwriting btn-cancel" onclick="closeHandwriting()">✕ Abbrechen</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -295,6 +676,19 @@
         let vocabs = JSON.parse(localStorage.getItem('vocabs')) || [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }];
         let hideAllLeft = false;
         let hideAllRight = false;
+        
+        // Lernkarten Variablen
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        
+        // Handschrift Variablen
+        let canvas, ctx;
+        let isDrawing = false;
+        let currentVocabId = null;
+        let currentField = null;
+        let lastX = 0;
+        let lastY = 0;
         
         // Sprachen aus localStorage laden
         const savedLeftLang = localStorage.getItem('leftLang');
@@ -313,6 +707,124 @@
             localStorage.setItem('vocabs', JSON.stringify(vocabs));
         }
 
+        // Funktion zum Mischen eines Arrays (Fisher-Yates Algorithmus)
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Lernmodus starten
+        function startLearnMode() {
+            // Nur Vokabeln mit beiden Spalten gefüllt
+            const filledVocabs = vocabs.filter(v => v.left.trim() !== '' && v.right.trim() !== '');
+            
+            if (filledVocabs.length === 0) {
+                alert('Bitte gib zuerst einige Vokabeln ein!');
+                return;
+            }
+
+            // Hole ausgewählte Richtung
+            const selectedDirection = document.querySelector('input[name="direction"]:checked').value;
+
+            // Erstelle Lernkarten basierend auf der gewählten Richtung
+            flashcards = [];
+            filledVocabs.forEach(vocab => {
+                if (selectedDirection === 'both' || selectedDirection === 'left-to-right') {
+                    // Richtung: links → rechts
+                    flashcards.push({
+                        front: vocab.left,
+                        back: vocab.right,
+                        direction: 'left-to-right'
+                    });
+                }
+                if (selectedDirection === 'both' || selectedDirection === 'right-to-left') {
+                    // Richtung: rechts → links
+                    flashcards.push({
+                        front: vocab.right,
+                        back: vocab.left,
+                        direction: 'right-to-left'
+                    });
+                }
+            });
+
+            // Mische die Karten
+            flashcards = shuffleArray(flashcards);
+            currentCardIndex = 0;
+            isFlipped = false;
+
+            // Zeige Lernkarten Container
+            document.getElementById('editContainer').classList.add('hidden');
+            document.getElementById('flashcardContainer').classList.add('active');
+
+            // Zeige erste Karte
+            showCurrentCard();
+        }
+
+        // Zeige aktuelle Karte
+        function showCurrentCard() {
+            if (currentCardIndex >= flashcards.length) {
+                // Alle Karten durch
+                alert('Glückwunsch! Du hast alle Karten durchgearbeitet! 🎉');
+                exitLearnMode();
+                return;
+            }
+
+            const card = flashcards[currentCardIndex];
+            const leftLang = document.getElementById('leftLang').value;
+            const rightLang = document.getElementById('rightLang').value;
+
+            document.getElementById('flashcardFront').textContent = card.front;
+            document.getElementById('flashcardBack').textContent = card.back;
+            document.getElementById('flashcardProgress').textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+            
+            const direction = card.direction === 'left-to-right' 
+                ? `${leftLang} → ${rightLang}` 
+                : `${rightLang} → ${leftLang}`;
+            document.getElementById('flashcardDirection').textContent = direction;
+
+            // Reset flip
+            isFlipped = false;
+            document.getElementById('flashcardInner').classList.remove('flipped');
+        }
+
+        // Karte umdrehen
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const inner = document.getElementById('flashcardInner');
+            if (isFlipped) {
+                inner.classList.add('flipped');
+            } else {
+                inner.classList.remove('flipped');
+            }
+        }
+
+        // Nächste Karte
+        function nextCard() {
+            currentCardIndex++;
+            showCurrentCard();
+        }
+
+        // Lernmodus beenden
+        function exitLearnMode() {
+            document.getElementById('flashcardContainer').classList.remove('active');
+            document.getElementById('editContainer').classList.remove('hidden');
+        }
+
+        // Lern-Button aktivieren/deaktivieren basierend auf Vokabeln
+        function updateLearnButton() {
+            const filledVocabs = vocabs.filter(v => v.left.trim() !== '' && v.right.trim() !== '');
+            const btnLearn = document.getElementById('btnLearn');
+            if (filledVocabs.length === 0) {
+                btnLearn.disabled = true;
+            } else {
+                btnLearn.disabled = false;
+            }
+        }
+
         const eyeOpenSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
         const eyeClosedSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>';
         const trashSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
@@ -320,12 +832,24 @@
         document.getElementById('leftLang').addEventListener('input', (e) => {
             document.getElementById('leftLangLabel').textContent = e.target.value;
             localStorage.setItem('leftLang', e.target.value);
+            updateDirectionLabels();
         });
 
         document.getElementById('rightLang').addEventListener('input', (e) => {
             document.getElementById('rightLangLabel').textContent = e.target.value;
             localStorage.setItem('rightLang', e.target.value);
+            updateDirectionLabels();
         });
+
+        // Labels für Lernrichtungen aktualisieren
+        function updateDirectionLabels() {
+            const leftLang = document.getElementById('leftLang').value;
+            const rightLang = document.getElementById('rightLang').value;
+            
+            document.getElementById('bothDirectionLabel').textContent = `${leftLang} ⇄ ${rightLang}`;
+            document.getElementById('leftToRightLabel').textContent = `${leftLang} → ${rightLang}`;
+            document.getElementById('rightToLeftLabel').textContent = `${rightLang} → ${leftLang}`;
+        }
 
         function render() {
             const leftColumn = document.getElementById('leftColumn');
@@ -345,6 +869,11 @@
                                placeholder="Vokabel...">
                         ${(hideAllLeft || vocab.hideLeft) && vocab.left ? '<div class="hidden-overlay">•••</div>' : ''}
                     </div>
+                    <button class="btn btn-pen" onclick="openHandwriting(${vocab.id}, 'left')" title="Handschriftlich eingeben">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                    </button>
                     <button class="btn" onclick="toggleHideIndividual(${vocab.id}, 'hideLeft')" title="Ausblenden">
                         ${vocab.hideLeft ? eyeClosedSVG : eyeOpenSVG}
                     </button>
@@ -361,6 +890,11 @@
                                placeholder="Übersetzung...">
                         ${(hideAllRight || vocab.hideRight) && vocab.right ? '<div class="hidden-overlay">•••</div>' : ''}
                     </div>
+                    <button class="btn btn-pen" onclick="openHandwriting(${vocab.id}, 'right')" title="Handschriftlich eingeben">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                    </button>
                     <button class="btn" onclick="toggleHideIndividual(${vocab.id}, 'hideRight')" title="Ausblenden">
                         ${vocab.hideRight ? eyeClosedSVG : eyeOpenSVG}
                     </button>
@@ -375,6 +909,9 @@
             // Update eye icons in headers
             document.getElementById('eyeLeftAll').innerHTML = hideAllLeft ? eyeClosedSVG.replace('<svg', '<svg').replace('</svg>', '') : eyeOpenSVG.replace('<svg', '<svg').replace('</svg>', '');
             document.getElementById('eyeRightAll').innerHTML = hideAllRight ? eyeClosedSVG.replace('<svg', '<svg').replace('</svg>', '') : eyeOpenSVG.replace('<svg', '<svg').replace('</svg>', '');
+            
+            // Update learn button
+            updateLearnButton();
         }
 
         function addRow() {
@@ -387,6 +924,8 @@
             });
             saveToLocalStorage();
             render();
+        updateDirectionLabels();
+        initHandwriting();
         }
 
         function deleteRow(id) {
