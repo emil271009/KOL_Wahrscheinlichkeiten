@@ -23,6 +23,114 @@
             margin: 0 auto;
         }
 
+        .lists-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .lists-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .lists-header h2 {
+            color: #1f2937;
+            font-size: 1.3rem;
+        }
+
+        .btn-new-list {
+            padding: 0.5rem 1rem;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-new-list:hover {
+            background: #4338ca;
+        }
+
+        .lists-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .list-card {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .list-card:hover {
+            border-color: #4f46e5;
+            background: #f5f3ff;
+        }
+
+        .list-card.active {
+            border-color: #4f46e5;
+            background: #eef2ff;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .list-card-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+        }
+
+        .list-card-count {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .btn-delete-list {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #ef4444;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .list-card:hover .btn-delete-list {
+            opacity: 1;
+        }
+
+        .btn-delete-list:hover {
+            color: #dc2626;
+        }
+
+        .btn-rename-list {
+            font-size: 0.75rem;
+            color: #6366f1;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-top: 0.25rem;
+            text-decoration: underline;
+        }
+
+        .btn-rename-list:hover {
+            color: #4f46e5;
+        }
+
         .header {
             background: white;
             border-radius: 12px;
@@ -446,6 +554,15 @@
             </div>
         </div>
 
+        <!-- Vokabellisten Auswahl -->
+        <div class="lists-section">
+            <div class="lists-header">
+                <h2>📋 Meine Vokabellisten</h2>
+                <button type="button" class="btn-new-list" id="btnNewList">+ Neue Liste</button>
+            </div>
+            <div class="lists-container" id="listsContainer"></div>
+        </div>
+
         <!-- Lernkarten Ansicht -->
         <div class="flashcard-container" id="flashcardContainer">
             <div class="flashcard-header">
@@ -551,8 +668,18 @@
     </div>
 
     <script>
-        // Vokabeln aus localStorage laden oder Standard verwenden
-        let vocabs = JSON.parse(localStorage.getItem('vocabs')) || [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }];
+        // Vokabellisten Verwaltung
+        let allLists = JSON.parse(localStorage.getItem('allLists')) || [
+            { id: 1, name: 'Hauptliste', vocabs: [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }] }
+        ];
+        let currentListId = parseInt(localStorage.getItem('currentListId')) || 1;
+        
+        // Aktuelle Liste laden
+        function getCurrentList() {
+            return allLists.find(list => list.id === currentListId) || allLists[0];
+        }
+        
+        let vocabs = getCurrentList().vocabs;
         let hideAllLeft = false;
         let hideAllRight = false;
         
@@ -735,7 +862,6 @@
             document.getElementById('flashcardContainer').classList.add('active');
 
             // Aktiviere Tastenkürzel
-            console.log('Tastenkürzel werden aktiviert'); // Debug
             document.addEventListener('keydown', handleKeyPress);
 
             // Zeige erste Karte
@@ -788,12 +914,10 @@
 
         // Lernmodus beenden
         function exitLearnMode() {
-            console.log('Lernmodus wird beendet'); // Debug
             document.getElementById('flashcardContainer').classList.remove('active');
             document.getElementById('editContainer').classList.remove('hidden');
             // Entferne Tastenkürzel-Event-Listener
             document.removeEventListener('keydown', handleKeyPress);
-            console.log('Tastenkürzel wurden deaktiviert'); // Debug
         }
 
         // Tastenkürzel-Handler
@@ -803,30 +927,19 @@
                 return;
             }
 
-            console.log('Taste gedrückt:', e.code); // Debug
-
             // Leertaste = Karte umdrehen
-            if (e.code === 'Space' || e.key === ' ') {
+            if (e.code === 'Space') {
                 e.preventDefault(); // Verhindert Scrollen
-                console.log('Leertaste erkannt - Karte wird umgedreht'); // Debug
                 flipCard();
             }
-            // Enter = Nächste Karte
-            else if (e.code === 'Enter' || e.key === 'Enter') {
+            // Pfeil rechts oder Enter = Nächste Karte
+            else if (e.code === 'ArrowRight' || e.code === 'Enter') {
                 e.preventDefault();
-                console.log('Enter erkannt - Nächste Karte'); // Debug
-                nextCard();
-            }
-            // Pfeil rechts = Nächste Karte (zusätzlich)
-            else if (e.code === 'ArrowRight' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                console.log('Pfeil rechts erkannt - Nächste Karte'); // Debug
                 nextCard();
             }
             // Escape = Beenden
-            else if (e.code === 'Escape' || e.key === 'Escape') {
+            else if (e.code === 'Escape') {
                 e.preventDefault();
-                console.log('Escape erkannt - Beenden'); // Debug
                 exitLearnMode();
             }
         }
