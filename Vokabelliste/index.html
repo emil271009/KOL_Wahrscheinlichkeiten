@@ -23,114 +23,6 @@
             margin: 0 auto;
         }
 
-        .lists-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .lists-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .lists-header h2 {
-            color: #1f2937;
-            font-size: 1.3rem;
-        }
-
-        .btn-new-list {
-            padding: 0.5rem 1rem;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .btn-new-list:hover {
-            background: #4338ca;
-        }
-
-        .lists-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .list-card {
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .list-card:hover {
-            border-color: #4f46e5;
-            background: #f5f3ff;
-        }
-
-        .list-card.active {
-            border-color: #4f46e5;
-            background: #eef2ff;
-            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
-        }
-
-        .list-card-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-            word-wrap: break-word;
-        }
-
-        .list-card-count {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
-        .btn-delete-list {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.25rem;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: #ef4444;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .list-card:hover .btn-delete-list {
-            opacity: 1;
-        }
-
-        .btn-delete-list:hover {
-            color: #dc2626;
-        }
-
-        .btn-rename-list {
-            font-size: 0.75rem;
-            color: #6366f1;
-            background: none;
-            border: none;
-            cursor: pointer;
-            margin-top: 0.25rem;
-            text-decoration: underline;
-        }
-
-        .btn-rename-list:hover {
-            color: #4f46e5;
-        }
-
         .header {
             background: white;
             border-radius: 12px;
@@ -554,15 +446,6 @@
             </div>
         </div>
 
-        <!-- Vokabellisten Auswahl -->
-        <div class="lists-section">
-            <div class="lists-header">
-                <h2>📋 Meine Vokabellisten</h2>
-                <button type="button" class="btn-new-list" id="btnNewList">+ Neue Liste</button>
-            </div>
-            <div class="lists-container" id="listsContainer"></div>
-        </div>
-
         <!-- Lernkarten Ansicht -->
         <div class="flashcard-container" id="flashcardContainer">
             <div class="flashcard-header">
@@ -582,9 +465,9 @@
             </div>
 
             <div class="flashcard-controls">
-                <button class="btn-control btn-flip" onclick="flipCard()">🔄 Umdrehen (Leertaste)</button>
-                <button class="btn-control btn-next" onclick="nextCard()">▶️ Weiter (→ / Enter)</button>
-                <button class="btn-control btn-exit" onclick="exitLearnMode()">❌ Beenden (Esc)</button>
+                <button class="btn-control btn-flip" onclick="flipCard()">🔄 Karte umdrehen</button>
+                <button class="btn-control btn-next" onclick="nextCard()">▶️ Nächste Karte</button>
+                <button class="btn-control btn-exit" onclick="exitLearnMode()">❌ Beenden</button>
             </div>
         </div>
 
@@ -661,25 +544,14 @@
                 <li>• Klicke auf das Auge-Symbol in der Spaltenüberschrift, um alle Wörter auszublenden</li>
                 <li>• Klicke auf das Auge-Symbol neben einem Wort, um nur dieses auszublenden</li>
                 <li>• Nutze den Papierkorb, um Zeilen zu löschen</li>
-                <li>• Klicke auf das Stift-Symbol, um Wörter handschriftlich einzugeben</li>
                 <li>• Klicke auf "Lernkarten starten" um deine Vokabeln in zufälliger Reihenfolge abzufragen</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // Vokabellisten Verwaltung
-        let allLists = JSON.parse(localStorage.getItem('allLists')) || [
-            { id: 1, name: 'Hauptliste', vocabs: [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }] }
-        ];
-        let currentListId = parseInt(localStorage.getItem('currentListId')) || 1;
-        
-        // Aktuelle Liste laden
-        function getCurrentList() {
-            return allLists.find(list => list.id === currentListId) || allLists[0];
-        }
-        
-        let vocabs = getCurrentList().vocabs;
+        // Vokabeln aus localStorage laden oder Standard verwenden
+        let vocabs = JSON.parse(localStorage.getItem('vocabs')) || [{ id: 1, left: '', right: '', hideLeft: false, hideRight: false }];
         let hideAllLeft = false;
         let hideAllRight = false;
         
@@ -702,110 +574,7 @@
         
         // Funktion zum Speichern
         function saveToLocalStorage() {
-            // Aktualisiere die aktuelle Liste
-            const currentList = allLists.find(list => list.id === currentListId);
-            if (currentList) {
-                currentList.vocabs = vocabs;
-            }
-            localStorage.setItem('allLists', JSON.stringify(allLists));
-            localStorage.setItem('currentListId', currentListId);
-            renderLists();
-        }
-
-        // Listen verwalten
-        function renderLists() {
-            const container = document.getElementById('listsContainer');
-            container.innerHTML = '';
-            
-            allLists.forEach(list => {
-                const card = document.createElement('div');
-                card.className = 'list-card' + (list.id === currentListId ? ' active' : '');
-                card.innerHTML = `
-                    <button class="btn-delete-list" onclick="deleteList(${list.id}, event)" title="Liste löschen">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                    <div class="list-card-title">${list.name}</div>
-                    <div class="list-card-count">${list.vocabs.filter(v => v.left && v.right).length} Vokabeln</div>
-                    <button class="btn-rename-list" onclick="renameList(${list.id}, event)">Umbenennen</button>
-                `;
-                card.onclick = (e) => {
-                    if (!e.target.classList.contains('btn-delete-list') && 
-                        !e.target.classList.contains('btn-rename-list') &&
-                        !e.target.closest('.btn-delete-list')) {
-                        switchList(list.id);
-                    }
-                };
-                container.appendChild(card);
-            });
-        }
-
-        function createNewList() {
-            console.log('createNewList wurde aufgerufen'); // Debug
-            const name = prompt('Name der neuen Liste:');
-            console.log('Eingegebener Name:', name); // Debug
-            
-            if (name && name.trim()) {
-                const newList = {
-                    id: Date.now(),
-                    name: name.trim(),
-                    vocabs: [{ id: Date.now() + 1, left: '', right: '', hideLeft: false, hideRight: false }]
-                };
-                console.log('Neue Liste erstellt:', newList); // Debug
-                
-                allLists.push(newList);
-                currentListId = newList.id;
-                vocabs = newList.vocabs;
-                
-                console.log('Alle Listen:', allLists); // Debug
-                
-                saveToLocalStorage();
-                renderLists();
-                render();
-                
-                console.log('Liste wurde erfolgreich erstellt und gespeichert'); // Debug
-            } else {
-                console.log('Keine gültige Eingabe'); // Debug
-            }
-        }
-
-        function switchList(listId) {
-            currentListId = listId;
-            const list = getCurrentList();
-            vocabs = list.vocabs;
-            localStorage.setItem('currentListId', currentListId);
-            renderLists();
-            render();
-        }
-
-        function deleteList(listId, event) {
-            event.stopPropagation();
-            if (allLists.length === 1) {
-                alert('Du kannst nicht die letzte Liste löschen!');
-                return;
-            }
-            if (confirm('Liste wirklich löschen?')) {
-                allLists = allLists.filter(list => list.id !== listId);
-                if (currentListId === listId) {
-                    currentListId = allLists[0].id;
-                    vocabs = allLists[0].vocabs;
-                }
-                saveToLocalStorage();
-                render();
-            }
-        }
-
-        function renameList(listId, event) {
-            event.stopPropagation();
-            const list = allLists.find(l => l.id === listId);
-            if (list) {
-                const newName = prompt('Neuer Name:', list.name);
-                if (newName && newName.trim()) {
-                    list.name = newName.trim();
-                    saveToLocalStorage();
-                }
-            }
+            localStorage.setItem('vocabs', JSON.stringify(vocabs));
         }
 
         // Funktion zum Mischen eines Arrays (Fisher-Yates Algorithmus)
@@ -861,9 +630,6 @@
             document.getElementById('editContainer').classList.add('hidden');
             document.getElementById('flashcardContainer').classList.add('active');
 
-            // Aktiviere Tastenkürzel
-            document.addEventListener('keydown', handleKeyPress);
-
             // Zeige erste Karte
             showCurrentCard();
         }
@@ -916,32 +682,6 @@
         function exitLearnMode() {
             document.getElementById('flashcardContainer').classList.remove('active');
             document.getElementById('editContainer').classList.remove('hidden');
-            // Entferne Tastenkürzel-Event-Listener
-            document.removeEventListener('keydown', handleKeyPress);
-        }
-
-        // Tastenkürzel-Handler
-        function handleKeyPress(e) {
-            // Nur im Lernmodus aktiv
-            if (!document.getElementById('flashcardContainer').classList.contains('active')) {
-                return;
-            }
-
-            // Leertaste = Karte umdrehen
-            if (e.code === 'Space') {
-                e.preventDefault(); // Verhindert Scrollen
-                flipCard();
-            }
-            // Pfeil rechts oder Enter = Nächste Karte
-            else if (e.code === 'ArrowRight' || e.code === 'Enter') {
-                e.preventDefault();
-                nextCard();
-            }
-            // Escape = Beenden
-            else if (e.code === 'Escape') {
-                e.preventDefault();
-                exitLearnMode();
-            }
         }
 
         // Lern-Button aktivieren/deaktivieren basierend auf Vokabeln
@@ -953,139 +693,6 @@
             } else {
                 btnLearn.disabled = false;
             }
-        }
-
-        // Handschrift-Funktionen
-        function initHandwriting() {
-            canvas = document.getElementById('handwritingCanvas');
-            ctx = canvas.getContext('2d');
-            
-            // Maus-Events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // Touch-Events für mobile Geräte
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', stopDrawing);
-        }
-
-        function getCanvasCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            if (e.touches && e.touches[0]) {
-                return {
-                    x: (e.touches[0].clientX - rect.left) * scaleX,
-                    y: (e.touches[0].clientY - rect.top) * scaleY
-                };
-            }
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
-
-        function startDrawing(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const coords = getCanvasCoordinates(e);
-            lastX = coords.x;
-            lastY = coords.y;
-        }
-
-        function handleTouchStart(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const coords = getCanvasCoordinates(e);
-            lastX = coords.x;
-            lastY = coords.y;
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            
-            const coords = getCanvasCoordinates(e);
-            
-            ctx.strokeStyle = '#1f2937';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(coords.x, coords.y);
-            ctx.stroke();
-            
-            lastX = coords.x;
-            lastY = coords.y;
-        }
-
-        function handleTouchMove(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            
-            const coords = getCanvasCoordinates(e);
-            
-            ctx.strokeStyle = '#1f2937';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(coords.x, coords.y);
-            ctx.stroke();
-            
-            lastX = coords.x;
-            lastY = coords.y;
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function openHandwriting(vocabId, field) {
-            currentVocabId = vocabId;
-            currentField = field;
-            clearCanvas();
-            document.getElementById('handwritingModal').classList.add('active');
-        }
-
-        function closeHandwriting() {
-            document.getElementById('handwritingModal').classList.remove('active');
-            currentVocabId = null;
-            currentField = null;
-        }
-
-        function acceptHandwriting() {
-            // Konvertiere Canvas zu Bild-URL
-            const imageData = canvas.toDataURL('image/png');
-            
-            // Erstelle einen Text-Platzhalter für die Handschrift
-            const handwritingText = '[Handschrift: ' + new Date().getTime() + ']';
-            
-            // Aktualisiere das Vokabelfeld
-            vocabs = vocabs.map(v => {
-                if (v.id === currentVocabId) {
-                    return { ...v, [currentField]: handwritingText, [currentField + '_image']: imageData };
-                }
-                return v;
-            });
-            
-            saveToLocalStorage();
-            render();
-            closeHandwriting();
-            
-            alert('Hinweis: Die Handschrift wird als Platzhalter gespeichert. Für die Lernkarten musst du den Text noch manuell eingeben.');
         }
 
         const eyeOpenSVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
@@ -1178,14 +785,6 @@
             saveToLocalStorage();
             render();
         updateDirectionLabels();
-        renderLists();
-        
-        // Event Listener für "Neue Liste" Button
-        document.getElementById('btnNewList').addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            createNewList();
-        });
         }
 
         function deleteRow(id) {
