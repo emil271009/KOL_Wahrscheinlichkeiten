@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notizen</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1916;
+    --surface2: #222120;
+    --border: #2e2c29;
+    --accent: #c8a96e;
+    --accent2: #8fb8a0;
+    --text: #e8e4dc;
+    --text-dim: #7a776f;
+    --danger: #c46b5a;
+    --sidebar-w: 280px;
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #sidebar-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  #sidebar-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .btn-sm {
+    flex: 1;
+    padding: 6px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-sm:hover { color: var(--accent); border-color: var(--accent); background: #1e1d1a; }
+
+  #tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  #tree::-webkit-scrollbar { width: 4px; }
+  #tree::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .tree-folder {
+    user-select: none;
+  }
+
+  .folder-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: background 0.1s;
+    position: relative;
+  }
+
+  .folder-row:hover { background: var(--surface2); color: var(--text); }
+  .folder-row.selected { background: var(--surface2); color: var(--accent); }
+
+  .folder-row .icon { font-size: 13px; flex-shrink: 0; }
+  .folder-row .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .folder-row .row-actions {
+    display: none;
+    gap: 4px;
+  }
+
+  .folder-row:hover .row-actions { display: flex; }
+
+  .row-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 3px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .row-btn:hover { color: var(--accent); background: rgba(200,169,110,0.1); }
+  .row-btn.danger:hover { color: var(--danger); background: rgba(196,107,90,0.1); }
+
+  .folder-children {
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
+    margin-left: 20px;
+  }
+
+  .note-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: background 0.1s;
+    border-radius: 0;
+  }
+
+  .note-row:hover { background: var(--surface2); color: var(--text); }
+  .note-row.active { color: var(--accent2); background: rgba(143,184,160,0.07); }
+  .note-row .row-actions { display: none; }
+  .note-row:hover .row-actions { display: flex; }
+
+  /* ── EDITOR AREA ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+
+  .tool-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+  .tool-btn {
+    padding: 5px 9px;
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.12s;
+    line-height: 1;
+  }
+
+  .tool-btn:hover { color: var(--text); border-color: var(--border); }
+  .tool-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(200,169,110,0.08); }
+
+  .tool-select {
+    padding: 4px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .tool-select:focus { border-color: var(--accent); color: var(--text); }
+
+  .color-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.12s;
+    flex-shrink: 0;
+  }
+
+  .color-btn:hover { border-color: var(--text); }
+
+  input[type="color"] {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+  }
+
+  #note-title-bar {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px 8px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #note-title {
+    flex: 1;
+    background: none;
+    border: none;
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    outline: none;
+    letter-spacing: -0.5px;
+  }
+
+  #note-title::placeholder { color: var(--border); }
+
+  #note-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  #editor-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 28px;
+  }
+
+  #editor-wrap::-webkit-scrollbar { width: 5px; }
+  #editor-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  #editor {
+    min-height: 100%;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    max-width: 780px;
+    margin: 0 auto;
+    caret-color: var(--accent);
+  }
+
+  #empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-dim);
+  }
+
+  #empty-state .big { font-family: 'Fraunces', serif; font-size: 48px; opacity: 0.15; }
+  #empty-state p { font-size: 12px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 320px;
+    max-width: 420px;
+    width: 90%;
+  }
+
+  .modal h2 { font-family: 'Fraunces', serif; font-size: 18px; color: var(--accent); margin-bottom: 16px; }
+
+  .modal input, .modal select {
+    width: 100%;
+    padding: 8px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    outline: none;
+    margin-bottom: 12px;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+
+  .modal-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+
+  .btn-primary {
+    padding: 7px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--accent);
+    color: #0f0e0c;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.12s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-ghost {
+    padding: 7px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .modal label { font-size: 10px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+
+  /* highlight colors */
+  mark { border-radius: 2px; padding: 0 2px; }
+
+  .drag-over { outline: 2px dashed var(--accent2); outline-offset: -2px; border-radius: 4px; }
+
+  /* ── FOLDER VIEW ── */
+  #folder-view {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+  #folder-view::-webkit-scrollbar { width: 5px; }
+  #folder-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #folder-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .breadcrumb-part { cursor: pointer; transition: color 0.12s; }
+  .breadcrumb-part:hover { color: var(--accent); }
+  .breadcrumb-sep { color: var(--border); }
+  .breadcrumb-current { color: var(--text); cursor: default; }
+  #folder-view-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+  }
+  #folder-view-actions { display: flex; gap: 8px; margin-bottom: 20px; }
+  #folder-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 14px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+  }
+  .tile:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .tile-icon { font-size: 36px; line-height: 1; }
+  .tile-name { font-size: 11px; color: var(--text); text-align: center; word-break: break-word; line-height: 1.4; max-width: 100%; }
+  .tile-meta { font-size: 9px; color: var(--text-dim); text-align: center; }
+  .tile-actions { position: absolute; top: 6px; right: 6px; display: none; gap: 2px; }
+  .tile:hover .tile-actions { display: flex; }
+  .tile-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    line-height: 1.4;
+    font-family: 'DM Mono', monospace;
+  }
+  .tile-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .tile-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+  .folder-view-empty { grid-column: 1 / -1; text-align: center; color: var(--text-dim); font-size: 12px; padding: 40px 0; }
+
+  #editor ul, #editor ol { padding-left: 1.6em; margin: 4px 0; }
+  #editor ul { list-style-type: disc; }
+  #editor ul ul { list-style-type: circle; }
+  #editor ul ul ul { list-style-type: square; }
+  #editor ol { list-style-type: decimal; }
+  #editor ol ol { list-style-type: lower-alpha; }
+  #editor li { margin: 2px 0; }
+
+  /* ── PAGE MODE ── */
+  #editor-wrap.page-mode {
+    background: #2a2826;
+    padding: 32px 0;
+    overflow-x: hidden;
+  }
+
+  #pages-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding-bottom: 40px;
+    width: 100%;
+  }
+
+  #editor-wrap.page-mode #pages-container { display: flex; }
+  #editor-wrap.page-mode #editor { display: none; }
+
+  .a4-page-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .a4-page {
+    width: 794px;
+    min-height: 1123px;
+    background: #f5f2ec;
+    color: #1a1916;
+    border-radius: 2px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    padding: 72px 80px;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.9;
+    caret-color: #c8a96e;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: top center;
+  }
+
+  .a4-page:focus { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 2px var(--accent); }
+
+  .page-number {
+    position: absolute;
+    bottom: 28px;
+    right: 36px;
+    font-size: 10px;
+    color: #aaa;
+    font-family: 'DM Mono', monospace;
+    pointer-events: none;
+  }
+
+  .page-del-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 13px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+
+  .a4-page:hover .page-del-btn { opacity: 1; }
+  .page-del-btn:hover { background: rgba(196,107,90,0.15); color: #c46b5a; }
+
+  #add-page-btn-bottom {
+    padding: 12px 32px;
+    background: rgba(255,255,255,0.04);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    margin: 0 auto;
+  }
+
+  #add-page-btn-bottom:hover { color: var(--accent); border-color: var(--accent); background: rgba(200,169,110,0.05); }
+
+  .a4-page ul, .a4-page ol { padding-left: 1.6em; margin: 4px 0; }
+  .a4-page ul { list-style-type: disc; }
+  .a4-page ul ul { list-style-type: circle; }
+  .a4-page ol { list-style-type: decimal; }
+  .a4-page li { margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div id="sidebar-title">✦ Notizen</div>
+    <div id="sidebar-actions">
+      <button class="btn-sm" onclick="openNewFolder(null)">＋ Ordner</button>
+      <button class="btn-sm" onclick="openNewNote(null)">＋ Notiz</button>
+    </div>
+  </div>
+  <div id="tree"></div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOOLBAR -->
+  <div id="toolbar" onmousedown="event.preventDefault()">
+    <!-- Font size -->
+    <select class="tool-select" id="fontSize" onchange="execCmd('fontSize',this.value)" title="Schriftgröße">
+      <option value="1">8</option>
+      <option value="2">10</option>
+      <option value="3" selected>12</option>
+      <option value="4">14</option>
+      <option value="5">18</option>
+      <option value="6">24</option>
+      <option value="7">36</option>
+    </select>
+
+    <div class="tool-sep"></div>
+
+    <!-- Bold Italic Underline -->
+    <button class="tool-btn" onclick="execCmd('bold')" title="Fett"><b>B</b></button>
+    <button class="tool-btn" onclick="execCmd('italic')" title="Kursiv"><i>I</i></button>
+    <button class="tool-btn" onclick="execCmd('underline')" title="Unterstrichen"><u>U</u></button>
+    <button class="tool-btn" onclick="execCmd('strikeThrough')" title="Durchgestrichen"><s>S</s></button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Alignment -->
+    <button class="tool-btn" id="alignLeft" onclick="setAlign('left')" title="Linksbündig">⬅</button>
+    <button class="tool-btn" id="alignCenter" onclick="setAlign('center')" title="Zentriert">⬌</button>
+    <button class="tool-btn" id="alignRight" onclick="setAlign('right')" title="Rechtsbündig">➡</button>
+    <button class="tool-btn" id="alignJustify" onclick="setAlign('justify')" title="Blocksatz">☰</button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Font color -->
+    <span style="font-size:10px;color:var(--text-dim)">A</span>
+    <input type="color" id="fontColor" value="#e8e4dc" onchange="execCmd('foreColor', this.value)" title="Schriftfarbe">
+
+    <!-- Highlight colors -->
+    <span style="font-size:10px;color:var(--text-dim);margin-left:4px">▓</span>
+    <div class="color-btn" style="background:#f7d97a" onmousedown="event.preventDefault();highlight('#f7d97a')" title="Gelb markieren"></div>
+    <div class="color-btn" style="background:#a8e6a3" onmousedown="event.preventDefault();highlight('#a8e6a3')" title="Grün markieren"></div>
+    <div class="color-btn" style="background:#f4a0a0" onmousedown="event.preventDefault();highlight('#f4a0a0')" title="Rot markieren"></div>
+    <div class="color-btn" style="background:#a0c8f4" onmousedown="event.preventDefault();highlight('#a0c8f4')" title="Blau markieren"></div>
+    <div class="color-btn" style="background:#d4a0f4" onmousedown="event.preventDefault();highlight('#d4a0f4')" title="Lila markieren"></div>
+    <button class="tool-btn" onclick="execCmd('removeFormat')" title="Markierung entfernen" style="font-size:10px">✕</button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Lists -->
+    <button class="tool-btn" id="btnUnorderedList" onclick="toggleList('unordered')" title="Aufzählungsliste (•)">• ≡</button>
+    <button class="tool-btn" id="btnOrderedList" onclick="toggleList('ordered')" title="Nummerierte Liste (1.)">1. ≡</button>
+    <button class="tool-btn" onclick="execCmd('indent')" title="Einrücken">⇥</button>
+    <button class="tool-btn" onclick="execCmd('outdent')" title="Ausrücken">⇤</button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Page mode -->
+    <button class="tool-btn" id="btnPageMode" onmousedown="event.preventDefault()" onclick="enablePageMode()" title="Auf A4-Seiten umschalten">📄 Seite</button>
+  </div>
+
+  <!-- NOTE TITLE -->
+  <div id="note-title-bar" style="display:none">
+    <input type="text" id="note-title" placeholder="Titel der Notiz..." oninput="saveCurrentNote()">
+    <div id="note-meta"></div>
+  </div>
+
+  <!-- EDITOR or EMPTY -->
+  <div id="empty-state">
+    <div class="big">✦</div>
+    <p>Wähle eine Notiz oder erstelle eine neue.</p>
+  </div>
+
+  <!-- FOLDER VIEW -->
+  <div id="folder-view">
+    <div id="folder-breadcrumb"></div>
+    <div id="folder-view-title"></div>
+    <div id="folder-view-actions">
+      <button class="btn-sm" onclick="openNewFolder(currentFolderId)">＋ Unterordner</button>
+      <button class="btn-sm" onclick="openNewNote(currentFolderId)">＋ Notiz</button>
+    </div>
+    <div id="folder-tiles"></div>
+  </div>
+
+  <div id="editor-wrap" style="display:none">
+    <div id="editor" contenteditable="true" spellcheck="true"></div>
+    <div id="pages-container"></div>
+    <button id="add-page-btn-bottom" onclick="addPage()" style="display:none">＋ Seite hinzufügen</button>
+  </div>
+</div>
+
+<!-- MODAL: New Folder / Note -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Neuer Ordner</h2>
+    <label id="modal-name-label">Name</label>
+    <input type="text" id="modal-name" placeholder="Name...">
+    <div id="modal-parent-wrap">
+      <label>Übergeordneter Ordner (optional)</label>
+      <select id="modal-parent"></select>
+    </div>
+    <div id="modal-type-wrap" style="display:none">
+      <label>Ordner (zum Ablegen)</label>
+      <select id="modal-folder-select"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" id="modal-ok" onclick="modalOk()">Erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE MODAL -->
+<div class="modal-overlay" id="move-modal">
+  <div class="modal">
+    <h2>Notiz verschieben</h2>
+    <label>Zielordner</label>
+    <select id="move-folder-select"></select>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeMoveModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="confirmMove()">Verschieben</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  folders: [],   // { id, name, parentId, open }
+  notes: [],     // { id, name, folderId, content, title, updated, pageMode, pages[] }
+};
+
+let currentNoteId = null;
+let currentFolderId = null;
+let saveTimer = null;
+let modalMode = null; // 'folder' | 'note'
+let moveNoteId = null;
+
+// ── LOAD / SAVE ────────────────────────────────────────────────────────────
+function loadState() {
+  try {
+    const s = localStorage.getItem('notizen_v2');
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+}
+
+function persistState() {
+  localStorage.setItem('notizen_v2', JSON.stringify(state));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+// ── TREE RENDER ────────────────────────────────────────────────────────────
+function renderTree() {
+  const tree = document.getElementById('tree');
+  tree.innerHTML = '';
+  renderFolderLevel(tree, null, 0);
+  // notes without folder
+  const rootNotes = state.notes.filter(n => !n.folderId);
+  rootNotes.forEach(n => tree.appendChild(makeNoteEl(n)));
+}
+
+function renderFolderLevel(container, parentId, depth) {
+  const folders = state.folders.filter(f => f.parentId === parentId);
+  folders.forEach(f => {
+    const el = makeFolderEl(f, depth);
+    container.appendChild(el);
+    if (f.open) {
+      const children = el.querySelector('.folder-children');
+      renderFolderLevel(children, f.id, depth + 1);
+      const notes = state.notes.filter(n => n.folderId === f.id);
+      notes.forEach(n => children.appendChild(makeNoteEl(n)));
+    }
+  });
+}
+
+function makeFolderEl(f, depth) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tree-folder';
+
+  const row = document.createElement('div');
+  row.className = 'folder-row';
+  row.innerHTML = `
+    <span class="icon toggle-icon" title="Aufklappen">${f.open ? '📂' : '📁'}</span>
+    <span class="name">${escHtml(f.name)}</span>
+    <div class="row-actions">
+      <button class="row-btn" onclick="event.stopPropagation();openNewNote('${f.id}')" title="Neue Notiz hier">＋</button>
+      <button class="row-btn" onclick="event.stopPropagation();openNewFolder('${f.id}')" title="Unterordner">⊕</button>
+      <button class="row-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}')" title="Löschen">✕</button>
+    </div>`;
+
+  // Click on icon → toggle open/close in sidebar
+  row.querySelector('.toggle-icon').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleFolder(f.id);
+  });
+
+  // Click on row → open folder view on right
+  row.onclick = () => openFolderView(f.id);
+
+  const children = document.createElement('div');
+  children.className = 'folder-children';
+
+  // drag target
+  row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); });
+  row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+  row.addEventListener('drop', e => {
+    e.preventDefault(); row.classList.remove('drag-over');
+    const nid = e.dataTransfer.getData('noteId');
+    if (nid) moveNote(nid, f.id);
+  });
+
+  wrap.appendChild(row);
+  wrap.appendChild(children);
+  return wrap;
+}
+
+function makeNoteEl(n) {
+  const el = document.createElement('div');
+  el.className = 'note-row' + (n.id === currentNoteId ? ' active' : '');
+  el.draggable = true;
+  el.innerHTML = `
+    <span class="icon">📄</span>
+    <span class="name">${escHtml(n.title || 'Unbenannt')}</span>
+    <div class="row-actions">
+      <button class="row-btn" onclick="event.stopPropagation();openMoveModal('${n.id}')" title="Verschieben">↗</button>
+      <button class="row-btn danger" onclick="event.stopPropagation();deleteNote('${n.id}')" title="Löschen">✕</button>
+    </div>`;
+  el.onclick = () => openNote(n.id);
+  el.addEventListener('dragstart', e => e.dataTransfer.setData('noteId', n.id));
+  return el;
+}
+
+function toggleFolder(id) {
+  const f = state.folders.find(x => x.id === id);
+  if (f) { f.open = !f.open; persistState(); renderTree(); }
+}
+
+// ── FOLDER VIEW ────────────────────────────────────────────────────────────
+function openFolderView(folderId) {
+  saveCurrentNote();
+  currentNoteId = null;
+  currentFolderId = folderId;
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('editor-wrap').style.display = 'none';
+  document.getElementById('note-title-bar').style.display = 'none';
+  document.getElementById('folder-view').style.display = 'flex';
+
+  renderFolderView(folderId);
+  renderTree();
+}
+
+function renderFolderView(folderId) {
+  const folder = state.folders.find(f => f.id === folderId);
+  if (!folder) return;
+
+  // Title
+  document.getElementById('folder-view-title').textContent = folder.name;
+
+  // Breadcrumb
+  const crumbEl = document.getElementById('folder-breadcrumb');
+  crumbEl.innerHTML = '';
+  const crumbs = buildBreadcrumb(folderId);
+
+  // Root link
+  const root = document.createElement('span');
+  root.className = 'breadcrumb-part';
+  root.textContent = '🏠 Menü';
+  root.onclick = () => showRootView();
+  crumbEl.appendChild(root);
+
+  crumbs.forEach((c, i) => {
+    const sep = document.createElement('span');
+    sep.className = 'breadcrumb-sep';
+    sep.textContent = '›';
+    crumbEl.appendChild(sep);
+
+    const part = document.createElement('span');
+    if (i === crumbs.length - 1) {
+      part.className = 'breadcrumb-current';
+    } else {
+      part.className = 'breadcrumb-part';
+      part.onclick = () => openFolderView(c.id);
+    }
+    part.textContent = c.name;
+    crumbEl.appendChild(part);
+  });
+
+  // Tiles
+  const tilesEl = document.getElementById('folder-tiles');
+  tilesEl.innerHTML = '';
+
+  const subFolders = state.folders.filter(f => f.parentId === folderId);
+  const notes = state.notes.filter(n => n.folderId === folderId);
+
+  if (subFolders.length === 0 && notes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'folder-view-empty';
+    empty.textContent = 'Dieser Ordner ist leer.';
+    tilesEl.appendChild(empty);
+    return;
+  }
+
+  subFolders.forEach(f => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="tile-actions">
+        <button class="tile-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}')">✕</button>
+      </div>
+      <div class="tile-icon">📁</div>
+      <div class="tile-name">${escHtml(f.name)}</div>
+      <div class="tile-meta">Ordner</div>`;
+    tile.onclick = () => openFolderView(f.id);
+    tilesEl.appendChild(tile);
+  });
+
+  notes.forEach(n => {
+    const d = n.updated ? new Date(n.updated).toLocaleDateString('de-DE') : '—';
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="tile-actions">
+        <button class="tile-btn" onclick="event.stopPropagation();openMoveModal('${n.id}')" title="Verschieben">↗</button>
+        <button class="tile-btn danger" onclick="event.stopPropagation();deleteNote('${n.id}')">✕</button>
+      </div>
+      <div class="tile-icon">📄</div>
+      <div class="tile-name">${escHtml(n.title || 'Unbenannt')}</div>
+      <div class="tile-meta">${d}</div>`;
+    tile.onclick = () => openNote(n.id);
+    tilesEl.appendChild(tile);
+  });
+}
+
+function buildBreadcrumb(folderId) {
+  const crumbs = [];
+  let id = folderId;
+  while (id) {
+    const f = state.folders.find(x => x.id === id);
+    if (!f) break;
+    crumbs.unshift({ id: f.id, name: f.name });
+    id = f.parentId;
+  }
+  return crumbs;
+}
+
+function showRootView() {
+  saveCurrentNote();
+  currentNoteId = null;
+  currentFolderId = null;
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('editor-wrap').style.display = 'none';
+  document.getElementById('note-title-bar').style.display = 'none';
+  document.getElementById('folder-view').style.display = 'flex';
+
+  // Breadcrumb: just "Menü" as current
+  const crumbEl = document.getElementById('folder-breadcrumb');
+  crumbEl.innerHTML = '<span class="breadcrumb-current">🏠 Menü</span>';
+
+  document.getElementById('folder-view-title').textContent = 'Menü';
+
+  const tilesEl = document.getElementById('folder-tiles');
+  tilesEl.innerHTML = '';
+
+  const rootFolders = state.folders.filter(f => !f.parentId);
+  const rootNotes = state.notes.filter(n => !n.folderId);
+
+  if (rootFolders.length === 0 && rootNotes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'folder-view-empty';
+    empty.textContent = 'Noch keine Ordner oder Notizen vorhanden.';
+    tilesEl.appendChild(empty);
+    return;
+  }
+
+  rootFolders.forEach(f => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="tile-actions">
+        <button class="tile-btn danger" onclick="event.stopPropagation();deleteFolder('${f.id}')">✕</button>
+      </div>
+      <div class="tile-icon">📁</div>
+      <div class="tile-name">${escHtml(f.name)}</div>
+      <div class="tile-meta">Ordner</div>`;
+    tile.onclick = () => openFolderView(f.id);
+    tilesEl.appendChild(tile);
+  });
+
+  rootNotes.forEach(n => {
+    const d = n.updated ? new Date(n.updated).toLocaleDateString('de-DE') : '—';
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="tile-actions">
+        <button class="tile-btn" onclick="event.stopPropagation();openMoveModal('${n.id}')" title="Verschieben">↗</button>
+        <button class="tile-btn danger" onclick="event.stopPropagation();deleteNote('${n.id}')">✕</button>
+      </div>
+      <div class="tile-icon">📄</div>
+      <div class="tile-name">${escHtml(n.title || 'Unbenannt')}</div>
+      <div class="tile-meta">${d}</div>`;
+    tile.onclick = () => openNote(n.id);
+    tilesEl.appendChild(tile);
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── NOTE OPEN / EDIT ───────────────────────────────────────────────────────
+function openNote(id) {
+  saveCurrentNote();
+  currentNoteId = id;
+  currentFolderId = null;
+  const note = state.notes.find(n => n.id === id);
+  if (!note) return;
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('folder-view').style.display = 'none';
+  document.getElementById('editor-wrap').style.display = 'block';
+  document.getElementById('note-title-bar').style.display = 'flex';
+  document.getElementById('note-title').value = note.title || '';
+  updateMeta(note);
+
+  if (note.pageMode) {
+    activatePageMode(note.pages || ['']);
+  } else {
+    deactivatePageMode();
+    document.getElementById('editor').innerHTML = note.content || '';
+  }
+  renderTree();
+}
+
+function activatePageMode(pages) {
+  const wrap = document.getElementById('editor-wrap');
+  wrap.classList.add('page-mode');
+  document.getElementById('btnPageMode').classList.add('active');
+  document.getElementById('btnPageMode').title = 'Seitenmodus aktiv';
+  document.getElementById('add-page-btn-bottom').style.display = 'block';
+  renderPages(pages);
+  setTimeout(scalePages, 50);
+}
+
+function deactivatePageMode() {
+  const wrap = document.getElementById('editor-wrap');
+  wrap.classList.remove('page-mode');
+  document.getElementById('btnPageMode').classList.remove('active');
+  document.getElementById('btnPageMode').title = 'Auf A4-Seiten umschalten';
+  document.getElementById('add-page-btn-bottom').style.display = 'none';
+  document.getElementById('pages-container').innerHTML = '';
+}
+
+function renderPages(pages) {
+  const container = document.getElementById('pages-container');
+  container.innerHTML = '';
+  pages.forEach((content, i) => {
+    container.appendChild(makePageEl(content, i));
+  });
+  updatePageNumbers();
+}
+
+function renderPages(pages) {
+  const container = document.getElementById('pages-container');
+  container.innerHTML = '';
+  pages.forEach((content, i) => {
+    container.appendChild(makePageEl(content, i));
+  });
+  updatePageNumbers();
+  scalePages();
+}
+
+function scalePages() {
+  const wrap = document.getElementById('editor-wrap');
+  const available = wrap.clientWidth - 48; // 24px padding each side
+  const pageWidth = 794;
+  const scale = Math.min(1, available / pageWidth);
+  document.querySelectorAll('.a4-page-wrapper').forEach(w => {
+    w.style.height = (1123 * scale + 24) + 'px';
+  });
+  document.querySelectorAll('.a4-page').forEach(p => {
+    p.style.transform = `scale(${scale})`;
+    p.style.transformOrigin = 'top center';
+    p.style.marginTop = '0';
+  });
+}
+
+// re-scale on window resize
+window.addEventListener('resize', () => {
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (note && note.pageMode) scalePages();
+});
+
+function makePageEl(content, index) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'a4-page-wrapper';
+
+  const page = document.createElement('div');
+  page.className = 'a4-page';
+  page.contentEditable = 'true';
+  page.spellcheck = true;
+  page.innerHTML = content;
+  page.dataset.index = index;
+
+  const num = document.createElement('div');
+  num.className = 'page-number';
+  num.textContent = `Seite ${index + 1}`;
+  page.appendChild(num);
+
+  if (index > 0) {
+    const delBtn = document.createElement('button');
+    delBtn.className = 'page-del-btn';
+    delBtn.title = 'Seite löschen';
+    delBtn.textContent = '✕';
+    delBtn.onclick = (e) => { e.stopPropagation(); deletePage(index); };
+    page.appendChild(delBtn);
+  }
+
+  page.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveCurrentNote, 800);
+  });
+
+  page.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const inList = document.queryCommandState('insertUnorderedList') || document.queryCommandState('insertOrderedList');
+      if (inList) {
+        document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+      } else {
+        document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+      }
+    }
+  });
+
+  wrapper.appendChild(page);
+  return wrapper;
+}
+
+function updatePageNumbers() {
+  document.querySelectorAll('.a4-page').forEach((p, i) => {
+    const num = p.querySelector('.page-number');
+    if (num) num.textContent = `Seite ${i + 1}`;
+    p.dataset.index = i;
+  });
+}
+
+function addPage() {
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (!note || !note.pageMode) return;
+  note.pages.push('');
+  const container = document.getElementById('pages-container');
+  const newIndex = document.querySelectorAll('.a4-page').length;
+  const wrapper = makePageEl('', newIndex);
+  container.appendChild(wrapper);
+  updatePageNumbers();
+  scalePages();
+  persistState();
+  const page = wrapper.querySelector('.a4-page');
+  page.focus();
+  page.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function deletePage(index) {
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (!note || !note.pageMode || note.pages.length <= 1) return;
+  if (!confirm(`Seite ${index + 1} löschen?`)) return;
+  note.pages.splice(index, 1);
+  renderPages(note.pages);
+  persistState();
+}
+
+function enablePageMode() {
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  if (note.pageMode) return; // already active
+
+  // Convert existing content to first page
+  const existingContent = document.getElementById('editor').innerHTML;
+  note.pageMode = true;
+  note.pages = [existingContent];
+  note.content = '';
+  persistState();
+  activatePageMode(note.pages);
+  showToast('Seitenmodus aktiviert – der bisherige Text ist auf Seite 1 übertragen.');
+}
+
+function updateMeta(note) {
+  const d = note.updated ? new Date(note.updated) : new Date();
+  document.getElementById('note-meta').textContent =
+    d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
+}
+
+function saveCurrentNote() {
+  if (!currentNoteId) return;
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (!note) return; // note was deleted, don't restore it
+  note.title = document.getElementById('note-title').value;
+  if (note.pageMode) {
+    note.pages = Array.from(document.querySelectorAll('.a4-page')).map(p => {
+      // clone and remove UI elements before saving
+      const clone = p.cloneNode(true);
+      clone.querySelectorAll('.page-number, .page-del-btn').forEach(el => el.remove());
+      return clone.innerHTML;
+    });
+  } else {
+    note.content = document.getElementById('editor').innerHTML;
+  }
+  note.updated = Date.now();
+  persistState();
+  renderTree();
+}
+
+// auto-save on input
+document.getElementById('editor').addEventListener('input', () => {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveCurrentNote, 800);
+});
+
+// save on unload
+window.addEventListener('beforeunload', saveCurrentNote);
+
+// ── TOOLBAR ────────────────────────────────────────────────────────────────
+function execCmd(cmd, val) {
+  const note = state.notes.find(n => n.id === currentNoteId);
+  if (note && note.pageMode) {
+    // focus is already on the active page, just execute
+    document.execCommand(cmd, false, val || null);
+  } else {
+    document.getElementById('editor').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+}
+
+function setAlign(dir) {
+  document.getElementById('editor').focus();
+  const cmds = { left:'justifyLeft', center:'justifyCenter', right:'justifyRight', justify:'justifyFull' };
+  document.execCommand(cmds[dir], false, null);
+  ['alignLeft','alignCenter','alignRight','alignJustify'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById('align' + dir.charAt(0).toUpperCase() + dir.slice(1)).classList.add('active');
+}
+
+function highlight(color) {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+    showToast('Bitte zuerst Text auswählen, um ihn zu markieren.');
+    return;
+  }
+  document.execCommand('backColor', false, color);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = `
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--surface2); color:var(--text-dim); border:1px solid var(--border);
+      padding:8px 16px; border-radius:6px; font-size:11px; z-index:9999;
+      pointer-events:none; opacity:0; transition:opacity 0.2s;
+      font-family:'DM Mono',monospace;
+    `;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
+
+function toggleList(type) {
+  document.getElementById('editor').focus();
+  const cmd = type === 'unordered' ? 'insertUnorderedList' : 'insertOrderedList';
+  document.execCommand(cmd, false, null);
+  updateListButtons();
+}
+
+function updateListButtons() {
+  const ul = document.queryCommandState('insertUnorderedList');
+  const ol = document.queryCommandState('insertOrderedList');
+  document.getElementById('btnUnorderedList').classList.toggle('active', ul);
+  document.getElementById('btnOrderedList').classList.toggle('active', ol);
+}
+
+document.getElementById('editor').addEventListener('keyup', updateListButtons);
+document.getElementById('editor').addEventListener('mouseup', updateListButtons);
+
+document.getElementById('editor').addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const inList = document.queryCommandState('insertUnorderedList') || document.queryCommandState('insertOrderedList');
+    if (inList) {
+      if (e.shiftKey) {
+        document.execCommand('outdent', false, null);
+      } else {
+        document.execCommand('indent', false, null);
+      }
+      updateListButtons();
+    } else {
+      // Outside list: insert tab as spaces
+      document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+    }
+  }
+});
+
+// ── MODAL (Folder / Note) ──────────────────────────────────────────────────
+function openNewFolder(parentId) {
+  modalMode = 'folder';
+  document.getElementById('modal-title').textContent = 'Neuer Ordner';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-parent-wrap').style.display = 'block';
+  document.getElementById('modal-type-wrap').style.display = 'none';
+  fillParentSelect('modal-parent', parentId);
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 50);
+}
+
+function openNewNote(folderId) {
+  modalMode = 'note';
+  document.getElementById('modal-title').textContent = 'Neue Notiz';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-parent-wrap').style.display = 'block';
+  document.getElementById('modal-type-wrap').style.display = 'none';
+  fillParentSelect('modal-parent', folderId, true);
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 50);
+}
+
+function fillParentSelect(selectId, selectedId, forNote) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">— Kein Ordner (Menü) —</option>';
+  function addFolders(parentId, indent) {
+    state.folders.filter(f => f.parentId === parentId).forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = '  '.repeat(indent) + f.name;
+      if (f.id === selectedId) opt.selected = true;
+      sel.appendChild(opt);
+      addFolders(f.id, indent + 1);
+    });
+  }
+  addFolders(null, 0);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function modalOk() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) return;
+  const parentVal = document.getElementById('modal-parent').value || null;
+
+  if (modalMode === 'folder') {
+    state.folders.push({ id: uid(), name, parentId: parentVal, open: true });
+    persistState();
+    closeModal();
+    renderTree();
+    if (currentFolderId) renderFolderView(currentFolderId);
+  } else {
+    const note = { id: uid(), name, title: name, folderId: parentVal, content: '', updated: Date.now() };
+    state.notes.push(note);
+    persistState();
+    closeModal();
+    renderTree();
+    openNote(note.id);
+  }
+}
+
+document.getElementById('modal-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') modalOk();
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── DELETE ────────────────────────────────────────────────────────────────
+function deleteFolder(id) {
+  if (!confirm('Ordner und alle Inhalte löschen?')) return;
+  // if we're currently viewing this folder or a child, go to root
+  if (currentFolderId === id || isChildOf(currentFolderId, id)) {
+    showRootView();
+  }
+  removeFolder(id);
+  persistState();
+  renderTree();
+  if (currentFolderId && currentFolderId !== id) renderFolderView(currentFolderId);
+  else showRootView();
+}
+
+function isChildOf(childId, parentId) {
+  if (!childId) return false;
+  let id = childId;
+  while (id) {
+    const f = state.folders.find(x => x.id === id);
+    if (!f) return false;
+    if (f.parentId === parentId) return true;
+    id = f.parentId;
+  }
+  return false;
+}
+
+function removeFolder(id) {
+  state.folders.filter(f => f.parentId === id).forEach(f => removeFolder(f.id));
+  state.notes = state.notes.filter(n => n.folderId !== id);
+  state.folders = state.folders.filter(f => f.id !== id);
+}
+
+function deleteNote(id) {
+  if (!confirm('Notiz löschen?')) return;
+  if (currentNoteId === id) {
+    clearTimeout(saveTimer);
+    currentNoteId = null;
+    document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('empty-state').style.flexDirection = 'column';
+    document.getElementById('editor-wrap').style.display = 'none';
+    document.getElementById('note-title-bar').style.display = 'none';
+    deactivatePageMode();
+  }
+  state.notes = state.notes.filter(n => n.id !== id);
+  persistState();
+  renderTree();
+  // refresh folder view if open
+  if (currentFolderId) renderFolderView(currentFolderId);
+  else showRootView();
+}
+
+// ── MOVE ─────────────────────────────────────────────────────────────────
+function openMoveModal(noteId) {
+  moveNoteId = noteId;
+  fillParentSelect('move-folder-select', null, true);
+  document.getElementById('move-modal').classList.add('open');
+}
+
+function closeMoveModal() {
+  document.getElementById('move-modal').classList.remove('open');
+  moveNoteId = null;
+}
+
+function confirmMove() {
+  if (!moveNoteId) return;
+  const fid = document.getElementById('move-folder-select').value || null;
+  moveNote(moveNoteId, fid);
+  closeMoveModal();
+}
+
+function moveNote(noteId, folderId) {
+  const note = state.notes.find(n => n.id === noteId);
+  if (note) { note.folderId = folderId || null; persistState(); renderTree(); }
+}
+
+// drop to root
+document.getElementById('tree').addEventListener('dragover', e => e.preventDefault());
+document.getElementById('tree').addEventListener('drop', e => {
+  const nid = e.dataTransfer.getData('noteId');
+  if (nid && e.target === document.getElementById('tree')) moveNote(nid, null);
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+loadState();
+renderTree();
+showRootView();
+</script>
+</body>
+</html>
