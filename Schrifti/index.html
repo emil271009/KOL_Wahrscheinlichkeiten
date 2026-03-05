@@ -489,15 +489,26 @@
     color: #1a1916;
     border-radius: 2px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-    padding: 72px 80px;
+    padding: 0;
     outline: none;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: top center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .a4-page-content {
+    flex: 1;
+    padding: 72px 80px;
     font-family: 'DM Mono', monospace;
     font-size: 13px;
     line-height: 1.9;
     caret-color: #c8a96e;
-    position: relative;
-    flex-shrink: 0;
-    transform-origin: top center;
+    outline: none;
+    min-height: 1123px;
+    color: #1a1916;
+    box-sizing: border-box;
   }
 
   .a4-page:focus { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 2px var(--accent); }
@@ -547,11 +558,33 @@
 
   #add-page-btn-bottom:hover { color: var(--accent); border-color: var(--accent); background: rgba(200,169,110,0.05); }
 
-  .a4-page ul, .a4-page ol { padding-left: 1.6em; margin: 4px 0; }
-  .a4-page ul { list-style-type: disc; }
-  .a4-page ul ul { list-style-type: circle; }
-  .a4-page ol { list-style-type: decimal; }
-  .a4-page li { margin: 2px 0; }
+  .a4-page-content ul, .a4-page-content ol { padding-left: 1.6em; margin: 4px 0; }
+  .a4-page-content ul { list-style-type: disc; }
+  .a4-page-content ul ul { list-style-type: circle; }
+  .a4-page-content ol { list-style-type: decimal; }
+  .a4-page-content li { margin: 2px 0; }
+
+  .page-drag-handle {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 14px;
+    color: #ccc;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.15s;
+    user-select: none;
+    z-index: 10;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  .page-drag-handle:active { cursor: grabbing; }
+  .a4-page:hover .page-drag-handle { opacity: 1; }
+
+  .a4-page-wrapper.drag-source { opacity: 0.35; }
+  .a4-page-wrapper.drop-above { border-top: 3px solid #c8a96e; }
+  .a4-page-wrapper.drop-below { border-bottom: 3px solid #c8a96e; }
 </style>
 </head>
 <body>
@@ -1031,15 +1064,6 @@ function renderPages(pages) {
     container.appendChild(makePageEl(content, i));
   });
   updatePageNumbers();
-}
-
-function renderPages(pages) {
-  const container = document.getElementById('pages-container');
-  container.innerHTML = '';
-  pages.forEach((content, i) => {
-    container.appendChild(makePageEl(content, i));
-  });
-  updatePageNumbers();
   scalePages();
 }
 
@@ -1064,37 +1088,53 @@ window.addEventListener('resize', () => {
   if (note && note.pageMode) scalePages();
 });
 
+let dragSrcWrapper = null;
+
 function makePageEl(content, index) {
   const wrapper = document.createElement('div');
   wrapper.className = 'a4-page-wrapper';
+  wrapper.draggable = true;
 
   const page = document.createElement('div');
   page.className = 'a4-page';
-  page.contentEditable = 'true';
-  page.spellcheck = true;
-  page.innerHTML = content;
   page.dataset.index = index;
 
+  // Inner editable content area — clean, no absolute children
+  const contentArea = document.createElement('div');
+  contentArea.className = 'a4-page-content';
+  contentArea.contentEditable = 'true';
+  contentArea.spellcheck = true;
+  contentArea.innerHTML = content;
+
+  // Drag handle (absolute, outside contenteditable)
+  const handle = document.createElement('div');
+  handle.className = 'page-drag-handle';
+  handle.textContent = '⠿';
+  handle.title = 'Seite verschieben';
+
+  // Page number (absolute)
   const num = document.createElement('div');
   num.className = 'page-number';
   num.textContent = `Seite ${index + 1}`;
+
+  // Delete button (absolute)
+  const delBtn = document.createElement('button');
+  delBtn.className = 'page-del-btn';
+  delBtn.title = 'Seite löschen';
+  delBtn.textContent = '✕';
+  delBtn.onclick = (e) => { e.stopPropagation(); deletePage(parseInt(page.dataset.index)); };
+
+  page.appendChild(contentArea);
+  page.appendChild(handle);
   page.appendChild(num);
+  page.appendChild(delBtn);
 
-  if (index > 0) {
-    const delBtn = document.createElement('button');
-    delBtn.className = 'page-del-btn';
-    delBtn.title = 'Seite löschen';
-    delBtn.textContent = '✕';
-    delBtn.onclick = (e) => { e.stopPropagation(); deletePage(index); };
-    page.appendChild(delBtn);
-  }
-
-  page.addEventListener('input', () => {
+  contentArea.addEventListener('input', () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveCurrentNote, 800);
   });
 
-  page.addEventListener('keydown', e => {
+  contentArea.addEventListener('keydown', e => {
     if (e.key === 'Tab') {
       e.preventDefault();
       const inList = document.queryCommandState('insertUnorderedList') || document.queryCommandState('insertOrderedList');
@@ -1104,6 +1144,66 @@ function makePageEl(content, index) {
         document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
       }
     }
+  });
+
+  // ── Drag & Drop ──
+  wrapper.addEventListener('dragstart', e => {
+    if (!e.target.classList.contains('page-drag-handle')) {
+      e.preventDefault();
+      return;
+    }
+    dragSrcWrapper = wrapper;
+    wrapper.classList.add('drag-source');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  wrapper.addEventListener('dragend', () => {
+    dragSrcWrapper = null;
+    document.querySelectorAll('.a4-page-wrapper').forEach(w => {
+      w.classList.remove('drag-source', 'drop-above', 'drop-below');
+    });
+  });
+
+  wrapper.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!dragSrcWrapper || dragSrcWrapper === wrapper) return;
+    e.dataTransfer.dropEffect = 'move';
+    const rect = wrapper.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    document.querySelectorAll('.a4-page-wrapper').forEach(w => w.classList.remove('drop-above', 'drop-below'));
+    if (e.clientY < midY) {
+      wrapper.classList.add('drop-above');
+    } else {
+      wrapper.classList.add('drop-below');
+    }
+  });
+
+  wrapper.addEventListener('dragleave', () => {
+    wrapper.classList.remove('drop-above', 'drop-below');
+  });
+
+  wrapper.addEventListener('drop', e => {
+    e.preventDefault();
+    if (!dragSrcWrapper || dragSrcWrapper === wrapper) return;
+    const container = document.getElementById('pages-container');
+    const wrappers = Array.from(container.children).filter(c => c.classList.contains('a4-page-wrapper'));
+    const fromIdx = wrappers.indexOf(dragSrcWrapper);
+    const toIdx = wrappers.indexOf(wrapper);
+    const isAbove = wrapper.classList.contains('drop-above');
+
+    wrapper.classList.remove('drop-above', 'drop-below');
+
+    saveCurrentNote();
+    const note = state.notes.find(n => n.id === currentNoteId);
+    if (!note || !note.pageMode) return;
+
+    const [moved] = note.pages.splice(fromIdx, 1);
+    let insertAt = toIdx > fromIdx ? toIdx - 1 : toIdx;
+    if (!isAbove) insertAt += 1;
+    note.pages.splice(insertAt, 0, moved);
+
+    renderPages(note.pages);
+    persistState();
   });
 
   wrapper.appendChild(page);
@@ -1129,15 +1229,16 @@ function addPage() {
   updatePageNumbers();
   scalePages();
   persistState();
-  const page = wrapper.querySelector('.a4-page');
-  page.focus();
-  page.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const pageContent = wrapper.querySelector('.a4-page-content');
+  pageContent.focus();
+  pageContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function deletePage(index) {
   const note = state.notes.find(n => n.id === currentNoteId);
   if (!note || !note.pageMode || note.pages.length <= 1) return;
   if (!confirm(`Seite ${index + 1} löschen?`)) return;
+  saveCurrentNote();
   note.pages.splice(index, 1);
   renderPages(note.pages);
   persistState();
@@ -1170,12 +1271,7 @@ function saveCurrentNote() {
   if (!note) return; // note was deleted, don't restore it
   note.title = document.getElementById('note-title').value;
   if (note.pageMode) {
-    note.pages = Array.from(document.querySelectorAll('.a4-page')).map(p => {
-      // clone and remove UI elements before saving
-      const clone = p.cloneNode(true);
-      clone.querySelectorAll('.page-number, .page-del-btn').forEach(el => el.remove());
-      return clone.innerHTML;
-    });
+    note.pages = Array.from(document.querySelectorAll('.a4-page-content')).map(c => c.innerHTML);
   } else {
     note.content = document.getElementById('editor').innerHTML;
   }
