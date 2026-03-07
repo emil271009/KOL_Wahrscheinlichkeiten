@@ -585,6 +585,23 @@
   .a4-page-wrapper.drag-source { opacity: 0.35; }
   .a4-page-wrapper.drop-above { border-top: 3px solid #c8a96e; }
   .a4-page-wrapper.drop-below { border-bottom: 3px solid #c8a96e; }
+
+  /* ── ZOOM CONTROLS ── */
+  #zoom-controls {
+    display: none;
+    align-items: center;
+    gap: 4px;
+  }
+
+  #zoom-controls.visible { display: flex; }
+
+  #zoom-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    min-width: 36px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+  }
 </style>
 </head>
 <body>
@@ -659,6 +676,16 @@
 
     <!-- Page mode -->
     <button class="tool-btn" id="btnPageMode" onmousedown="event.preventDefault()" onclick="enablePageMode()" title="Auf A4-Seiten umschalten">📄 Seite</button>
+
+    <div class="tool-sep" id="zoom-sep" style="display:none"></div>
+
+    <!-- Zoom controls (only in page mode) -->
+    <div id="zoom-controls">
+      <button class="tool-btn" onmousedown="event.preventDefault()" onclick="changeZoom(-10)" title="Verkleinern">−</button>
+      <span id="zoom-label">100%</span>
+      <button class="tool-btn" onmousedown="event.preventDefault()" onclick="changeZoom(10)" title="Vergrößern">+</button>
+      <button class="tool-btn" onmousedown="event.preventDefault()" onclick="resetZoom()" title="Zoom zurücksetzen" style="font-size:10px">⟳</button>
+    </div>
   </div>
 
   <!-- NOTE TITLE -->
@@ -1044,6 +1071,8 @@ function activatePageMode(pages) {
   document.getElementById('btnPageMode').classList.add('active');
   document.getElementById('btnPageMode').title = 'Seitenmodus aktiv';
   document.getElementById('add-page-btn-bottom').style.display = 'block';
+  document.getElementById('zoom-controls').classList.add('visible');
+  document.getElementById('zoom-sep').style.display = 'block';
   renderPages(pages);
   setTimeout(scalePages, 50);
 }
@@ -1054,6 +1083,8 @@ function deactivatePageMode() {
   document.getElementById('btnPageMode').classList.remove('active');
   document.getElementById('btnPageMode').title = 'Auf A4-Seiten umschalten';
   document.getElementById('add-page-btn-bottom').style.display = 'none';
+  document.getElementById('zoom-controls').classList.remove('visible');
+  document.getElementById('zoom-sep').style.display = 'none';
   document.getElementById('pages-container').innerHTML = '';
 }
 
@@ -1067,19 +1098,35 @@ function renderPages(pages) {
   scalePages();
 }
 
+let userZoom = 100; // percentage
+
 function scalePages() {
   const wrap = document.getElementById('editor-wrap');
-  const available = wrap.clientWidth - 48; // 24px padding each side
+  const available = wrap.clientWidth - 48;
   const pageWidth = 794;
-  const scale = Math.min(1, available / pageWidth);
+  const fitScale = Math.min(1, available / pageWidth);
+  const finalScale = fitScale * (userZoom / 100);
+
   document.querySelectorAll('.a4-page-wrapper').forEach(w => {
-    w.style.height = (1123 * scale + 24) + 'px';
+    w.style.height = (1123 * finalScale + 24) + 'px';
   });
   document.querySelectorAll('.a4-page').forEach(p => {
-    p.style.transform = `scale(${scale})`;
+    p.style.transform = `scale(${finalScale})`;
     p.style.transformOrigin = 'top center';
     p.style.marginTop = '0';
   });
+
+  document.getElementById('zoom-label').textContent = userZoom + '%';
+}
+
+function changeZoom(delta) {
+  userZoom = Math.min(200, Math.max(30, userZoom + delta));
+  scalePages();
+}
+
+function resetZoom() {
+  userZoom = 100;
+  scalePages();
 }
 
 // re-scale on window resize
@@ -1288,6 +1335,75 @@ document.getElementById('editor').addEventListener('input', () => {
 
 // save on unload
 window.addEventListener('beforeunload', saveCurrentNote);
+
+// ── PASTE HANDLER ─────────────────────────────────────────────────────────
+function cleanPastedHTML(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  doc.body.querySelectorAll('*').forEach(el => {
+    // Strip unwanted attributes entirely
+    ['bgcolor', 'background'].forEach(attr => el.removeAttribute(attr));
+
+    // Clean inline styles: remove background/color, keep useful formatting
+    const style = el.getAttribute('style');
+    if (style) {
+      const cleaned = style
+        .split(';')
+        .map(s => s.trim())
+        .filter(s => {
+          if (!s) return false;
+          const prop = s.split(':')[0].trim().toLowerCase();
+          // Remove background and text color (often carries webpage colors)
+          if (prop === 'background' || prop === 'background-color') return false;
+          if (prop === 'color') return false;
+          // Remove font-family (keeps native editor font)
+          if (prop === 'font-family') return false;
+          // Remove margin/padding clutter from web layouts
+          if (prop === 'margin' || prop === 'padding') return false;
+          return true;
+        })
+        .join('; ');
+
+      if (cleaned) {
+        el.setAttribute('style', cleaned);
+      } else {
+        el.removeAttribute('style');
+      }
+    }
+
+    // Remove class attributes (can carry external CSS)
+    el.removeAttribute('class');
+    el.removeAttribute('id');
+  });
+
+  return doc.body.innerHTML;
+}
+
+function handlePaste(e) {
+  e.preventDefault();
+  const clipboardData = e.clipboardData || window.clipboardData;
+
+  // Try to get HTML first for richer paste
+  const html = clipboardData.getData('text/html');
+  if (html) {
+    const cleaned = cleanPastedHTML(html);
+    document.execCommand('insertHTML', false, cleaned);
+  } else {
+    // Fallback: plain text
+    const text = clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+  }
+}
+
+document.getElementById('editor').addEventListener('paste', handlePaste);
+
+// Paste handler is also added to each page in makePageEl via event delegation
+document.getElementById('pages-container').addEventListener('paste', e => {
+  if (e.target.classList.contains('a4-page-content')) {
+    handlePaste(e);
+  }
+});
 
 // ── TOOLBAR ────────────────────────────────────────────────────────────────
 function execCmd(cmd, val) {
