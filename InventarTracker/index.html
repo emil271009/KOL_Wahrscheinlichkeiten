@@ -1,170 +1,614 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digitales Inventar Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        .hero {
-            background-image: url('https://example.com/hero-bg.jpg');
-            background-size: cover;
-            background-position: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventar-Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Icons (replace with actual paths) */
-        .smartphone-app-icon.png, .qrcode-icon.png, .bluetooth-icon.png, .lora-icon.png {
-            width: 40px;
-            height: 40px;
-        }
-    </style>
+    :root {
+      --bg:          #ffffff;
+      --bg-2:        #f5f5f3;
+      --text:        #1a1a18;
+      --text-muted:  #888780;
+      --border:      rgba(0,0,0,0.12);
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --low-color:   #D85A30;
+      --check-bg:    #EAF3DE;
+      --check-border:#3B6D11;
+      --check-tick:  #27500A;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #1e1e1c;
+        --bg-2:      #2a2a28;
+        --text:      #f0ede6;
+        --text-muted:#888780;
+        --border:    rgba(255,255,255,0.12);
+        --check-bg:  #27500A;
+        --check-tick:#C0DD97;
+      }
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg-2);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    #app { max-width: 680px; margin: 0 auto; }
+    h1   { font-size: 22px; font-weight: 500; margin-bottom: 1.5rem; }
+
+    /* ── Statistik-Kacheln ─────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .stat { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 0.75rem 1rem; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-value { font-size: 22px; font-weight: 500; }
+
+    /* ── Karten ────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Formularelemente ──────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 80px; gap: 8px; }
+    .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%; height: 36px; padding: 0 10px;
+      font-size: 14px; color: var(--text);
+      background: var(--bg-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); outline: none; transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus { border-color: rgba(128,128,128,0.5); }
+
+    .btn-primary {
+      width: 100%; margin-top: 10px; height: 38px;
+      background: var(--text); color: var(--bg);
+      border: none; border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.8; }
+
+    /* ── Kategorien-Verwaltung ─────────────────────────────────────── */
+    .section-title {
+      font-size: 12px; font-weight: 500; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+    }
+    .cat-manager { display: flex; gap: 8px; margin-bottom: 8px; }
+    .cat-manager input {
+      flex: 1; height: 36px; padding: 0 10px; font-size: 14px; color: var(--text);
+      background: var(--bg-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); outline: none;
+    }
+    .cat-manager input:focus { border-color: rgba(128,128,128,0.5); }
+    .btn-outline {
+      height: 36px; padding: 0 14px; background: none;
+      border: 0.5px solid var(--border); border-radius: var(--radius-md);
+      font-size: 13px; color: var(--text); cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-outline:hover { background: var(--bg-2); }
+    .err { font-size: 12px; color: var(--low-color); min-height: 16px; margin-bottom: 8px; }
+    .cat-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cat-tag {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+      padding: 4px 10px; background: var(--bg-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); color: var(--text);
+    }
+    .cat-del { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 0; line-height: 1; transition: color 0.15s; }
+    .cat-del:hover { color: #E24B4A; }
+    .hint { font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.6; }
+
+    /* ── Toolbar ───────────────────────────────────────────────────── */
+    .toolbar { display: flex; gap: 8px; margin-bottom: 1rem; }
+    #search {
+      flex: 1; height: 36px; padding: 0 10px; font-size: 14px;
+      color: var(--text); background: var(--bg);
+      border: 0.5px solid var(--border); border-radius: var(--radius-md); outline: none;
+    }
+    #search:focus { border-color: rgba(128,128,128,0.5); }
+    #filter-cat {
+      width: 150px; height: 36px; padding: 0 10px; font-size: 14px;
+      color: var(--text); background: var(--bg);
+      border: 0.5px solid var(--border); border-radius: var(--radius-md); outline: none;
+    }
+
+    /* ── Fortschrittsleiste (nur bei Packliste / Einkaufsliste) ────── */
+    .list-progress {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .list-progress.visible { display: flex; }
+    .progress-bar { flex: 1; height: 4px; background: var(--bg-2); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 2px; background: #3B6D11; transition: width 0.3s; }
+    .progress-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+    /* ── Artikelliste ──────────────────────────────────────────────── */
+    .item-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .item {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      transition: opacity 0.2s;
+    }
+    /* Abgehakte Artikel: ausgeblendet, Name durchgestrichen */
+    .item.checked { opacity: 0.5; }
+    .item.checked .item-name { text-decoration: line-through; color: var(--text-muted); }
+
+    .item-row { display: flex; align-items: center; gap: 10px; }
+
+    /* ── Custom Checkbox ───────────────────────────────────────────── */
+    /* Nur bei Listen-Kategorien sichtbar (Packliste / Einkaufsliste)  */
+    .check-wrap {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      display: none; /* wird per JS auf 'block' gesetzt für List-Items */
+    }
+    .check-wrap input { display: none; }
+
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 0.5px solid var(--border);
+      background: var(--bg-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .check-box svg { opacity: 0; transition: opacity 0.15s; }
+    .check-wrap input:checked ~ .check-box {
+      background: var(--check-bg);
+      border-color: var(--check-border);
+    }
+    .check-wrap input:checked ~ .check-box svg { opacity: 1; }
+
+    .item-name { flex: 1; font-size: 15px; font-weight: 500; }
+    .item-cat  { font-size: 12px; padding: 3px 8px; background: var(--bg-2); color: var(--text-muted); border-radius: var(--radius-md); white-space: nowrap; }
+
+    /* Farbige Badges für Packliste / Einkaufsliste */
+    .list-badge { font-size: 11px; padding: 2px 7px; border-radius: var(--radius-md); font-weight: 500; white-space: nowrap; }
+    .list-badge.pack { background: #E1F5EE; color: #085041; }
+    .list-badge.shop { background: #E6F1FB; color: #0C447C; }
+
+    /* Mengen-Stepper */
+    .qty-ctrl { display: flex; align-items: center; gap: 4px; }
+    .qty-btn {
+      width: 26px; height: 26px; background: none; border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); font-size: 16px; line-height: 1; cursor: pointer;
+      color: var(--text); display: flex; align-items: center; justify-content: center; transition: background 0.12s;
+    }
+    .qty-btn:hover { background: var(--bg-2); }
+    .qty-val { font-size: 14px; font-weight: 500; min-width: 28px; text-align: center; }
+    .qty-val.low { color: var(--low-color); }
+
+    /* Icon-Buttons */
+    .icon-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; line-height: 1; border-radius: 4px; transition: color 0.15s; display: flex; align-items: center; }
+    .icon-btn.edit:hover { color: var(--text); }
+    .icon-btn.del:hover  { color: #E24B4A; }
+
+    /* Bearbeitungszeile */
+    .edit-row {
+      display: none; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border);
+    }
+    .edit-row.open { display: grid; }
+    .edit-row input, .edit-row select {
+      height: 34px; padding: 0 8px; font-size: 13px; color: var(--text);
+      background: var(--bg-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); outline: none; width: 100%;
+    }
+    .edit-row label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .edit-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .btn-save {
+      flex: 1; height: 32px; background: var(--text); color: var(--bg);
+      border: none; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-save:hover { opacity: 0.8; }
+    .btn-cancel {
+      flex: 1; height: 32px; background: none; border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); font-size: 13px; color: var(--text);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-cancel:hover { background: var(--bg-2); }
+
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
+
+    @media (max-width: 500px) {
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid .field:first-child { grid-column: span 2; }
+      #filter-cat { width: 120px; }
+      .edit-row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <!-- Header -->
-    <header class="bg-white shadow-lg">
-        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Digitales Inventar Management</h1>
-        </div>
-    </header>
+<body>
+<div id="app">
+  <h1>Inventar</h1>
 
-    <!-- Hero Section -->
-    <section class="hero bg-blue-500 text-white py-20">
-        <div class="container mx-auto px-4 flex flex-col items-center justify-center text-center">
-            <h2 class="text-3xl font-bold mb-6">Inventar digital erfassen und verwalten</h2>
-            <p class="text-xl mb-8">Verwalten Sie Ihr Inventar mit höchstem Sicherheitsstandard.</p>
-        </div>
-    </section>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Artikel gesamt</div><div class="stat-value" id="stat-items">0</div></div>
+    <div class="stat"><div class="stat-label">Menge gesamt</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat">
+      <div class="stat-label" id="stat-cat-label">Alle Kategorien</div>
+      <div class="stat-value" id="stat-cat">0</div>
+    </div>
+  </div>
 
-    <!-- Technologien Section -->
-    <section class="py-16">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-2xl font-bold mb-8">Technologien</h3>
-            <div class="flex flex-wrap justify-center -mx-2">
-                <div class="px-2 w-full md:w-1/2 lg:w-1/4 mb-6">
-                    <img src="https://example.com/smartphone-app-icon.png" alt="Smartphone App" class="w-20 h-20 mx-auto mb-4">
-                    <p>Smartphone App</p>
-                </div>
-                <div class="px-2 w-full md:w-1/2 lg:w-1/4 mb-6">
-                    <img src="https://example.com/qrcode-icon.png" alt="QR Code" class="w-20 h-20 mx-auto mb-4">
-                    <p>QR-Code / Barcode</p>
-                </div>
-                <div class="px-2 w-full md:w-1/2 lg:w-1/4 mb-6">
-                    <img src="https://example.com/bluetooth-icon.png" alt="Bluetooth" class="w-20 h-20 mx-auto mb-4">
-                    <p>Bluetooth (iBeacon)</p>
-                </div>
-                <div class="px-2 w-full md:w-1/2 lg:w-1/4 mb-6">
-                    <img src="https://example.com/lora-icon.png" alt="LoRa Tracking" class="w-20 h-20 mx-auto mb-4">
-                    <p>LoRa Tracking</p>
-                </div>
+  <div class="card">
+    <div class="section-title">Kategorien verwalten</div>
+    <div class="cat-manager">
+      <input type="text" id="inp-new-cat" placeholder="Neue Kategorie..." maxlength="30" autocomplete="off" />
+      <button class="btn-outline" id="btn-cat-add">+ Hinzufügen</button>
+    </div>
+    <div id="err-cat" class="err"></div>
+    <div class="cat-tags" id="cat-tags"></div>
+    <div class="hint" id="hint-restore" style="display:none">
+      Gelöscht: <span id="deleted-list"></span> &mdash;
+      <button class="btn-outline" id="btn-restore"
+        style="height:26px;padding:0 10px;font-size:12px;vertical-align:middle;margin-left:2px">
+        Alle wiederherstellen
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-grid">
+      <div class="field" style="grid-column: span 1">
+        <label for="inp-name">Name</label>
+        <input type="text" id="inp-name" placeholder="z.B. Laptop" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="inp-cat">Kategorie</label>
+        <select id="inp-cat"></select>
+      </div>
+      <div class="field">
+        <label for="inp-qty">Menge</label>
+        <input type="number" id="inp-qty" min="0" value="1" />
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-add">+ Artikel hinzufügen</button>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Suchen..." autocomplete="off" />
+    <select id="filter-cat"><option value="">Alle Kategorien</option></select>
+  </div>
+
+  <!-- Fortschrittsleiste: nur sichtbar bei Packliste / Einkaufsliste -->
+  <div class="list-progress" id="list-progress">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <span class="progress-label" id="progress-label">0 / 0</span>
+  </div>
+
+  <div class="item-list" id="item-list"></div>
+  <div class="empty" id="empty" style="display:none">Keine Artikel gefunden.</div>
+</div>
+
+<script>
+  // ── 1. Kategorien-Definition ──────────────────────────────────────────
+  // Packliste und Einkaufsliste stehen an erster Stelle und bekommen Checkbox-Funktion.
+  const ALL_BUILTIN = [
+    'Packliste', 'Einkaufsliste',
+    'Elektronik', 'Büro', 'Werkzeug', 'Lebensmittel', 'Kleidung', 'Sonstiges'
+  ];
+
+  // Diese Kategorien bekommen Checkboxen und eine Fortschrittsleiste.
+  const LIST_CATS = new Set(['Packliste', 'Einkaufsliste']);
+
+  // ── 2. State laden ────────────────────────────────────────────────────
+  let items = [], customCats = [], deletedBuiltin = [];
+  try {
+    items          = JSON.parse(localStorage.getItem('inventar_items')    || '[]');
+    customCats     = JSON.parse(localStorage.getItem('inventar_cats')     || '[]');
+    deletedBuiltin = JSON.parse(localStorage.getItem('inventar_del_cats') || '[]');
+  } catch (e) {}
+
+  function activeCats() { return ALL_BUILTIN.filter(c => !deletedBuiltin.includes(c)); }
+  function allCats()    { return [...activeCats(), ...customCats]; }
+
+  function save() {
+    localStorage.setItem('inventar_items',    JSON.stringify(items));
+    localStorage.setItem('inventar_cats',     JSON.stringify(customCats));
+    localStorage.setItem('inventar_del_cats', JSON.stringify(deletedBuiltin));
+  }
+
+  function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── 3. Statistiken ────────────────────────────────────────────────────
+  function updateStats() {
+    const cat = document.getElementById('filter-cat').value;
+    document.getElementById('stat-items').textContent = items.length;
+    document.getElementById('stat-total').textContent = items.reduce((s, i) => s + i.qty, 0);
+    const labelEl = document.getElementById('stat-cat-label');
+    const valueEl = document.getElementById('stat-cat');
+    if (cat === '') {
+      labelEl.textContent = 'Alle Kategorien';
+      valueEl.textContent = items.length;
+    } else {
+      labelEl.textContent = cat;
+      valueEl.textContent = items.filter(i => i.cat === cat).length;
+    }
+  }
+
+  // ── 4. Fortschrittsleiste ─────────────────────────────────────────────
+  // Zeigt wie viele Artikel der aktiven Listen-Kategorie abgehakt wurden.
+  function updateProgress() {
+    const cat  = document.getElementById('filter-cat').value;
+    const prog = document.getElementById('list-progress');
+
+    if (!LIST_CATS.has(cat)) {
+      prog.classList.remove('visible');
+      return;
+    }
+
+    prog.classList.add('visible');
+    const inCat   = items.filter(i => i.cat === cat);
+    const checked = inCat.filter(i => i.checked).length;
+    const total   = inCat.length;
+    const pct     = total === 0 ? 0 : Math.round(checked / total * 100);
+
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = checked + ' / ' + total;
+  }
+
+  // ── 5. Kategorien-UI ──────────────────────────────────────────────────
+  function renderCats() {
+    const cats = allCats();
+    document.getElementById('cat-tags').innerHTML = cats.map(c =>
+      `<span class="cat-tag">${escHtml(c)}
+        <button class="cat-del" data-cat="${escHtml(c)}" title="Löschen">&#x2715;</button>
+      </span>`
+    ).join('');
+
+    const hintEl = document.getElementById('hint-restore');
+    if (deletedBuiltin.length > 0) {
+      document.getElementById('deleted-list').textContent = deletedBuiltin.join(', ');
+      hintEl.style.display = 'block';
+    } else { hintEl.style.display = 'none'; }
+
+    const selAdd = document.getElementById('inp-cat');
+    const prevAdd = selAdd.value;
+    selAdd.innerHTML = cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    if (cats.includes(prevAdd)) selAdd.value = prevAdd;
+
+    const selFilter = document.getElementById('filter-cat');
+    const prevFilter = selFilter.value;
+    selFilter.innerHTML = '<option value="">Alle Kategorien</option>' +
+      cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    if (cats.includes(prevFilter)) selFilter.value = prevFilter;
+  }
+
+  // ── 6. Artikelliste rendern ───────────────────────────────────────────
+  function render() {
+    const q    = document.getElementById('search').value.toLowerCase();
+    const cat  = document.getElementById('filter-cat').value;
+    const cats = allCats();
+
+    const filtered = items.filter(i =>
+      i.name.toLowerCase().includes(q) && (cat === '' || i.cat === cat)
+    );
+
+    const list  = document.getElementById('item-list');
+    const empty = document.getElementById('empty');
+    list.innerHTML = '';
+
+    if (filtered.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      filtered.forEach(item => {
+        const isListItem = LIST_CATS.has(item.cat);
+        const el = document.createElement('div');
+        el.className = 'item' + (item.checked ? ' checked' : '');
+        el.dataset.id = item.id;
+
+        const catOptions = cats.map(c =>
+          `<option value="${escHtml(c)}"${c === item.cat ? ' selected' : ''}>${escHtml(c)}</option>`
+        ).join('');
+
+        // Badge-Stil je nach Listen-Kategorie
+        const badgeClass = item.cat === 'Packliste' ? 'pack' : 'shop';
+        const badgeLabel = item.cat === 'Packliste' ? 'Packliste' : 'Einkaufsliste';
+
+        el.innerHTML = `
+          <div class="item-row">
+
+            <!-- Checkbox: nur für Packliste / Einkaufsliste sichtbar -->
+            <label class="check-wrap" style="display:${isListItem ? 'block' : 'none'}"
+              title="${item.checked ? 'Abhaken rückgängig' : 'Als erledigt markieren'}">
+              <input type="checkbox" data-action="check" data-id="${item.id}"${item.checked ? ' checked' : ''}>
+              <div class="check-box">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                     stroke="var(--check-tick)" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="2,6 5,9 10,3"/>
+                </svg>
+              </div>
+            </label>
+
+            <span class="item-name">${escHtml(item.name)}</span>
+
+            <!-- Farbiges Badge für Listen-Artikel, normaler Tag für reguläre Artikel -->
+            ${isListItem
+              ? `<span class="list-badge ${badgeClass}">${badgeLabel}</span>`
+              : `<span class="item-cat">${escHtml(item.cat)}</span>`
+            }
+
+            <!-- Schnellstepper -->
+            <div class="qty-ctrl">
+              <button class="qty-btn" data-action="dec" data-id="${item.id}">&#x2212;</button>
+              <span class="qty-val${item.qty < 5 ? ' low' : ''}">${item.qty}</span>
+              <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
             </div>
-        </div>
-    </section>
 
-    <!-- Vorteile Section -->
-    <section class="bg-gray-100 py-16">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-2xl font-bold mb-8">Vorteile</h3>
-            <ul class="flex flex-wrap justify-center -mx-4">
-                <li class="w-full md:w-1/2 lg:w-1/3 px-4 mb-6">
-                    <p><strong>Echtzeit-Erfassung:</strong> Daten werden direkt übertragen.</p>
-                </li>
-                <li class="w-full md:w-1/2 lg:w-1/3 px-4 mb-6">
-                    <p><strong>Cloud-Datenbank:</strong> Sicher und zentral verwaltbar.</p>
-                </li>
-                <li class="w-full md:w-1/2 lg:w-1/3 px-4 mb-6">
-                    <p><strong>GPS + Zeitstempel:</strong> Präzise Ortsbestimmung und Verlauf.</p>
-                </li>
-            </ul>
-        </div>
-    </section>
+            <!-- Bearbeiten -->
+            <button class="icon-btn edit" data-action="edit" data-id="${item.id}" title="Bearbeiten">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                   stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 2l3 3-9 9H2v-3L11 2z"/>
+              </svg>
+            </button>
 
-    <!-- FAQ Section -->
-    <section class="py-16">
-        <div class="container mx-auto px-4">
-            <h3 class="text-2xl font-bold mb-8">FAQ</h3>
-            <div class="accordion" id="faqAccordion">
-                <div class="card mb-4">
-                    <div class="card-header" id="headingOne">
-                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            Was ist das Inventar-Tracking?
-                        </button>
-                    </div>
+            <!-- Löschen -->
+            <button class="icon-btn del" data-action="del" data-id="${item.id}" title="Löschen">&#x2715;</button>
+          </div>
 
-                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#faqAccordion">
-                        <div class="card-body">
-                            Das Inventar-Tracking ist ein System zur Verwaltung und Überwachung von Waren im Unternehmen.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add more FAQ items as needed -->
+          <!-- Bearbeitungszeile -->
+          <div class="edit-row" id="edit-${item.id}">
+            <div><label>Name</label><input type="text" class="edit-name" value="${escHtml(item.name)}" maxlength="80"/></div>
+            <div><label>Kategorie</label><select class="edit-cat">${catOptions}</select></div>
+            <div><label>Menge</label><input type="number" class="edit-qty" value="${item.qty}" min="0"/></div>
+            <div style="display:flex;align-items:flex-end">
+              <div class="edit-actions" style="width:100%">
+                <button class="btn-save"   data-action="save"   data-id="${item.id}">Speichern</button>
+                <button class="btn-cancel" data-action="cancel" data-id="${item.id}">Abbrechen</button>
+              </div>
             </div>
-        </div>
-    </section>
+          </div>
+        `;
+        list.appendChild(el);
+      });
+    }
 
-    <!-- Kontakt Section -->
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-2xl font-bold mb-8">Kontakt</h3>
-            <form id="contactForm" class="max-w-md mx-auto">
-                <div class="mb-4">
-                    <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
-                    <input type="text" id="name" name="name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4">
-                    <label for="email" class="block text-gray-700 text-sm font-bold mb-2">E-Mail:</label>
-                    <input type="email" id="email" name="email" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4">
-                    <label for="message" class="block text-gray-700 text-sm font-bold mb-2">Nachricht:</label>
-                    <textarea id="message" name="message" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                </div>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Senden</button>
-            </form>
-        </div>
-    </section>
+    updateStats();
+    updateProgress();
+  }
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-4">
-        <div class="container mx-auto px-4 text-center">
-            <p>&copy; 2023 Digitales Inventar Management. Alle Rechte vorbehalten.</p>
-        </div>
-    </footer>
+  // ── 7. Aktionen der Artikelliste ──────────────────────────────────────
+  document.getElementById('item-list').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const { action, id } = btn.dataset;
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('contactForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+    if (action === 'check') {
+      // Checkbox-Status togglen
+      const item = items.find(i => i.id === id);
+      if (item) item.checked = btn.checked;
+      save(); render();
 
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+    } else if (action === 'del') {
+      items = items.filter(i => i.id !== id);
+      save(); render();
 
-            fetch('/api/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    alert('Ihre Nachricht wurde erfolgreich gesendet.');
-                    this.reset();
-                } else {
-                    alert('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
-            });
-        });
-    </script>
+    } else if (action === 'inc' || action === 'dec') {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      if (action === 'inc') item.qty += 1;
+      if (action === 'dec' && item.qty > 0) item.qty -= 1;
+      save(); render();
+
+    } else if (action === 'edit') {
+      document.querySelectorAll('.edit-row.open').forEach(r => {
+        if (r.id !== `edit-${id}`) r.classList.remove('open');
+      });
+      document.getElementById(`edit-${id}`)?.classList.toggle('open');
+
+    } else if (action === 'save') {
+      const row     = document.getElementById(`edit-${id}`);
+      const newName = row.querySelector('.edit-name').value.trim();
+      const newCat  = row.querySelector('.edit-cat').value;
+      const newQty  = parseInt(row.querySelector('.edit-qty').value, 10);
+      if (!newName || isNaN(newQty) || newQty < 0) return;
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.name = newName; item.cat = newCat; item.qty = newQty;
+        // Checkbox-Status zurücksetzen wenn Kategorie keine Listen-Kategorie mehr ist
+        if (!LIST_CATS.has(newCat)) item.checked = false;
+      }
+      save(); render();
+
+    } else if (action === 'cancel') {
+      document.getElementById(`edit-${id}`)?.classList.remove('open');
+    }
+  });
+
+  // ── 8. Kategorie hinzufügen ───────────────────────────────────────────
+  document.getElementById('btn-cat-add').addEventListener('click', () => {
+    const inp  = document.getElementById('inp-new-cat');
+    const err  = document.getElementById('err-cat');
+    const name = inp.value.trim();
+    if (!name) { err.textContent = 'Bitte einen Namen eingeben.'; return; }
+    if (allCats().map(c => c.toLowerCase()).includes(name.toLowerCase())) {
+      err.textContent = 'Diese Kategorie existiert bereits.'; return; }
+    if (deletedBuiltin.map(c => c.toLowerCase()).includes(name.toLowerCase())) {
+      err.textContent = 'Tipp: Diese Standardkategorie kann unten wiederhergestellt werden.'; return; }
+    err.textContent = '';
+    customCats.push(name);
+    save(); renderCats(); inp.value = ''; inp.focus();
+  });
+
+  document.getElementById('inp-new-cat').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-cat-add').click();
+  });
+
+  document.getElementById('cat-tags').addEventListener('click', e => {
+    const btn = e.target.closest('.cat-del');
+    if (!btn) return;
+    const cat = btn.dataset.cat;
+    const err = document.getElementById('err-cat');
+    if (items.some(i => i.cat === cat)) {
+      err.textContent = `"${cat}" wird noch von Artikeln verwendet.`; return; }
+    err.textContent = '';
+    if (ALL_BUILTIN.includes(cat)) deletedBuiltin.push(cat);
+    else customCats = customCats.filter(c => c !== cat);
+    save(); renderCats(); render();
+  });
+
+  document.getElementById('btn-restore').addEventListener('click', () => {
+    deletedBuiltin = [];
+    document.getElementById('err-cat').textContent = '';
+    save(); renderCats();
+  });
+
+  // ── 9. Artikel hinzufügen ─────────────────────────────────────────────
+  document.getElementById('btn-add').addEventListener('click', () => {
+    const nameEl = document.getElementById('inp-name');
+    const name   = nameEl.value.trim();
+    const cat    = document.getElementById('inp-cat').value;
+    const qty    = parseInt(document.getElementById('inp-qty').value, 10);
+    if (!name) { nameEl.focus(); return; }
+    if (isNaN(qty) || qty < 0) return;
+    items.push({ id: uid(), name, cat, qty, checked: false });
+    save(); render();
+    nameEl.value = '';
+    document.getElementById('inp-qty').value = '1';
+    nameEl.focus();
+  });
+
+  document.getElementById('inp-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-add').click();
+  });
+
+  document.getElementById('search').addEventListener('input', render);
+  document.getElementById('filter-cat').addEventListener('change', render);
+
+  // ── 10. Init ──────────────────────────────────────────────────────────
+  renderCats();
+  render();
+</script>
 </body>
 </html>
