@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Dashboard</title>
+    
+    <!-- ======================================================================= -->
+    <!-- STYLES (Merged from CSS components) -->
+    <!-- ======================================================================= -->
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f7f9;
+            padding: 20px;
+            margin: 0;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        /* Inventory Grid Layout */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        /* Card Styling */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.2s;
+            border-left: 5px solid #007bff;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #007bff;
+            font-size: 1.4em;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #eee;
+        }
+        .detail-item strong {
+            color: #555;
+        }
+        .stock-low {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .stock-ok {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .summary-box {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .summary-box p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h1>📦 Inventory Management Dashboard</h1>
+
+        <!-- Summary Section (Dynamically Populated) -->
+        <div class="summary-box">
+            <p><strong>Total SKUs:</strong> <span id="total-skus">0</span></p>
+            <p><strong>Low Stock Items:</strong> <span id="low-stock-count" class="stock-low">0</span></p>
+            <p><strong>Total Value:</strong> <span id="total-value">$0.00</span></p>
+        </div>
+
+        <!-- Inventory Grid (Dynamically Populated) -->
+        <h2>Product Stock</h2>
+        <div id="inventory-grid" class="inventory-grid">
+            <!-- Cards will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- JAVASCRIPT LOGIC (Converted from React JSX/Components) -->
+    <!-- ======================================================================= -->
+    <script>
+        // Mock Data Source (Replaces the data fetching/props passed to React components)
+        const inventoryData = [
+            {
+                sku: 'LAP-XYZ-001',
+                name: 'Laptop Model X',
+                stock: 15,
+                minStock: 20,
+                price: 1200.00,
+                supplier: 'TechCorp'
+            },
+            {
+                sku: 'MON-ABC-005',
+                name: '27in Monitor 4K',
+                stock: 8,
+                minStock: 10,
+                price: 350.00,
+                supplier: 'ViewMax'
+            },
+            {
+                sku: 'KEY-G-012',
+                name: 'Mechanical Keyboard',
+                stock: 150,
+                minStock: 50,
+                price: 85.00,
+                supplier: 'KeyPro'
+            },
+            {
+                sku: 'MSE-ERGO-022',
+                name: 'Ergonomic Mouse',
+                stock: 3,
+                minStock: 10,
+                price: 45.00,
+                supplier: 'ClickFast'
+            }
+        ];
+
+        // --- Utility Functions ---
+        const formatCurrency = (amount) => {
+            return `$${amount.toFixed(2)}`;
+        };
+
+        const getStockClass = (stock, minStock) => {
+            if (stock < minStock) {
+                return 'stock-low';
+            }
+            return 'stock-ok';
+        };
+
+        // --- Rendering Functions ---
+
+        /**
+         * Generates the HTML card structure for a single product.
+         * @param {Object} product - The product data object.
+         * @returns {string} The HTML string for the card.
+         */
+        const createProductCardHTML = (product) => {
+            const stockClass = getStockClass(product.stock, product.minStock);
+
+            return `
+                <div class="card" data-sku="${product.sku}">
+                    <h3>${product.name}</h3>
+                    <div class="detail-item">
+                        <strong>SKU:</strong> <span>${product.sku}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Stock Level:</strong> <span class="${stockClass}">${product.stock}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Reorder Point:</strong> <span>${product.minStock}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Price:</strong> <span>${formatCurrency(product.price)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Supplier:</strong> <span>${product.supplier}</span>
+                    </div>
+                </div>
+            `;
+        };
+
+        /**
+         * Renders all product cards to the inventory grid.
+         */
+        const renderInventory = () => {
+            const gridElement = document.getElementById('inventory-grid');
+            let cardsHTML = '';
+
+            inventoryData.forEach(product => {
+                cardsHTML += createProductCardHTML(product);
+            });
+
+            gridElement.innerHTML = cardsHTML;
+        };
+
+        /**
+         * Calculates and renders summary statistics.
+         * (This replaces the logic that would have been calculated in a React useEffect hook)
+         */
+        const renderSummary = () => {
+            let totalSKUs = 0;
+            let lowStockCount = 0;
+            let totalValue = 0;
+
+            inventoryData.forEach(product => {
+                totalSKUs++;
+                totalValue += (product.stock * product.price);
+
+                if (product.stock < product.minStock) {
+                    lowStockCount++;
+                }
+            });
+
+            // Update the DOM elements
+            document.getElementById('total-inventory').textContent = inventoryData.length;
+            document.getElementById('low-stock-count').textContent = lowStockCount;
+            document.getElementById('total-inventory-value').textContent = `$${totalInventoryValue.toFixed(2)}`;
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Render the individual inventory cards
+            const inventoryContainer = document.getElementById('inventory-items');
+            if (inventoryContainer) {
+                inventoryContainer.innerHTML = inventoryData.map(item => 
+                    `
+                    <div class="item-card">
+                        <h4>${item.name}</h4>
+                        <p>Stock: <strong>${item.stock}</strong></p>
+                        <p>Value: $${(item.stock * item.price).toFixed(2)}</p>
+                    </div>
+                `).join('');
+            }
+
+            // 2. Re-implementing the summary card logic based on the initial design
+            const totalInventory = inventoryData.length;
+            const lowStockCount = inventoryData.filter(item => item.stock < 10).length;
+            const totalInventoryValue = inventoryData.reduce((acc, item) => acc + (item.stock * item.price), 0);
+
+            document.getElementById('total-inventory').textContent = totalInventory;
+            document.getElementById('low-stock-count').textContent = lowStockCount;
+            document.getElementById('total-inventory-value').textContent = `$${totalInventoryValue.toFixed(2)}`;
+        });
+    }
+    </script>
+</script>
+
+<!-- Helper Script for the first component -->
+<script>
+    /* The original code mixed two separate dashboards. This script targets the "Inventory Items" section. */
+    document.addEventListener('DOMContentLoaded', () => {
+        const inventoryData = [
+            { name: "Laptop Model X", stock: 50, price: 1200 },
+            { name: "Wireless Mouse", stock: 150, price: 25 },
+            { name: "USB-C Hub", stock: 8, price: 45 }, // Low stock
+            { name: "Mechanical Keyboard", stock: 30, price: 100 }
+        ];
+        
+        const inventoryContainer = document.getElementById('inventory-items');
+        if (inventoryContainer) {
+            inventoryContainer.innerHTML = inventoryData.map(item => 
+                `
+                <div class="item-card">
+                    <h4>${item.name}</h4>
+                    <p>Stock: <strong>${item.stock}</strong></p>
+                    <p>Value: $${(item.stock * item.price).toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+    });
+</script>
+
+<style>
+    /* Global Styles for readability */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7f9;
+        color: #333;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    h1, h2 {
+        color: #2c3e50;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-top: 30px;
+    }
+
+    .dashboard-section {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+
+    /* --- Component 1: Summary Cards (KPIs) --- */
+    .kpi-grid {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+    .kpi-card {
+        flex: 1;
+        min-width: 200px;
+        padding: 20px;
+        background-color: #ecf0f5;
+        border-left: 5px solid #3498db;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+    }
+    .kpi-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #7f8c8d;
+    }
+    .kpi-card .value {
+        font-size: 2.2em;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    /* --- Component 2: Inventory Items List --- */
+    #inventory-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .item-card {
+        flex: 1 1 calc(25% - 20px);
+        min-width: 180px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .item-card h4 {
+        margin-top: 0;
+        color: #3498db;
+        font-size: 1.1em;
+    }
+    .item-card p {
+        margin: 5px 0;
+    }
+
+    /* --- Component 3: Dashboard Tabs (Example Styling) --- */
+    .tab-buttons {
+        display: flex;
+        border-bottom: 2px solid #ddd;
+        margin-bottom: 20px;
+    }
+    .tab-buttons button {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: none;
+        background-color: #e9ecef;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        margin-right: 5px;
+        transition: background-color 0.2s;
+    }
+    .tab-buttons button.active {
+        background-color: #3498db;
+        color: white;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .tab-content {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 8px 8px 8px;
+    }
+</style>
+<header>
+    <h1 style="text-align: center; margin-bottom: 30px;">🚀 E-Commerce Dashboard Overview</h1>
+</header>
+
+<!-- 1. KPI Summary Cards -->
+<div class="dashboard-section">
+    <h2 style="margin-top: 0;">Key Performance Indicators (KPIs)</h2>
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>Total SKU Count</h3>
+            <div class="value" id="total-inventory">0</div>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #7f8c8d;">Distinct Products Available</p>
+        </div>
+        <div class="kpi-card" style="border-left-color: #e74c3c;">
+            <h3>Low Stock Count</h3>
+            <div class="value" id="low-stock-count">0</div>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #7f8c8d;">Items needing immediate reorder</p>
+        </div>
+        <div class="kpi-card" style="border-left-color: #2ecc71;">
+            <h3>Inventory Value</h3>
+            <div class="value" id="total-inventory-value">$0.00</div>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #7f8c8d;">Total cost value of current stock</p>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Inventory Item Listing -->
+<div class="dashboard-section">
+    <h2>📦 Current Stock Levels</h2>
+    <div id="inventory-items" style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Items will be populated here -->
+    </div>
+</div>
+
+<!-- 3. Example of a Widget/Graph Area -->
+<div style="display: flex; gap: 20px; margin-top: 40px;">
+    <!-- Widget 1 -->
+    <div style="flex: 1; min-width: 300px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background-color: #fafafa;">
+        <h3>Sales Trend (Last 7 Days)</h3>
+        <p style="color: #555;">[Placeholder for a Line Chart]</p>
+        <div style="height: 200px; background: linear-gradient(to right, #ff9999, #66b3ff); border-radius: 4px;"></div>
+    </div>
+    
+    <!-- Widget 2 -->
+    <div style="flex: 1; min-width: 300px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background-color: #fafafa;">
+        <h3>Top Selling Category</h3>
+        <ul style="list-style: none; padding: 0;">
+            <li style="padding: 8px 0; border-bottom: 1px dotted #eee;">Electronics (45% YTD)</li>
+            <li style="padding: 8px 0; border-bottom: 1px dotted #eee;">Apparel (30% YTD)</li>
+            <li style="padding: 8px 0;">Home Goods (25% YTD)</li>
+        </ul>
+    </div>
+</div>
