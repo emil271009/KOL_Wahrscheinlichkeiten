@@ -21,7 +21,7 @@
       --check-bg:  #EAF3DE;
       --check-bd:  #3B6D11;
       --check-tick:#27500A;
-      --sidebar:   220px;
+      --sidebar:   270px;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -39,260 +39,152 @@
       }
     }
 
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg2);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ── Shell ────────────────────────────────────────────────────── */
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
     .shell { display: flex; flex-direction: column; min-height: 100vh; }
-
-    .topbar {
-      padding: .9rem 1.25rem;
-      border-bottom: .5px solid var(--border);
-      background: var(--bg);
-    }
+    .topbar { padding: .9rem 1.25rem; border-bottom: .5px solid var(--border); background: var(--bg); }
     .topbar h1 { font-size: 18px; font-weight: 500; }
-
     .body { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── Sidebar ──────────────────────────────────────────────────── */
+    /* ── Sidebar ── */
     .sidebar {
-      width: var(--sidebar);
-      flex-shrink: 0;
-      background: var(--bg);
-      border-right: .5px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 1rem .875rem;
-      gap: 10px;
+      width: var(--sidebar); flex-shrink: 0;
+      background: var(--bg); border-right: .5px solid var(--border);
+      display: flex; flex-direction: column; padding: 1rem .875rem; gap: 10px;
     }
-
-    .sidebar-title {
-      font-size: 11px; font-weight: 500; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .06em;
-    }
-
-    /* Button: neue Kategorie öffnen */
-    .btn-new-cat {
-      width: 100%; height: 32px;
-      background: none; border: .5px solid var(--border2);
-      border-radius: var(--rmd); font-size: 12px; color: var(--text);
-      cursor: pointer; transition: background .15s;
-    }
+    .sidebar-title { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .btn-new-cat { width: 100%; height: 32px; background: none; border: .5px solid var(--border2); border-radius: var(--rmd); font-size: 12px; color: var(--text); cursor: pointer; transition: background .15s; }
     .btn-new-cat:hover { background: var(--bg2); }
-
-    /* Eingabezeile neue Kategorie */
     .new-cat-row { display: none; gap: 6px; }
     .new-cat-row.open { display: flex; }
-    .new-cat-row input {
-      flex: 1; height: 30px; padding: 0 8px; font-size: 12px;
-      color: var(--text); background: var(--bg2);
-      border: .5px solid var(--border2); border-radius: var(--rmd); outline: none;
-    }
-    .new-cat-row button {
-      height: 30px; padding: 0 10px; font-size: 12px;
-      background: var(--text); color: var(--bg);
-      border: none; border-radius: var(--rmd); cursor: pointer;
-    }
-
+    .new-cat-row input { flex: 1; height: 30px; padding: 0 8px; font-size: 12px; color: var(--text); background: var(--bg2); border: .5px solid var(--border2); border-radius: var(--rmd); outline: none; }
+    .new-cat-row button { height: 30px; padding: 0 10px; font-size: 12px; background: var(--text); color: var(--bg); border: none; border-radius: var(--rmd); cursor: pointer; }
     .err-cat { font-size: 11px; color: var(--low); min-height: 14px; }
-
-    /* Kategorie-Liste in der Sidebar */
     .cat-list { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
 
-    .cat-item {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 8px; border-radius: var(--rmd);
-      cursor: pointer; font-size: 13px; color: var(--text);
-      border: .5px solid transparent;
-      transition: background .15s;
-    }
+    /* Kategorie-Eintrag */
+    .cat-item { position: relative; border-radius: var(--rmd); border: .5px solid transparent; transition: background .15s; }
     .cat-item:hover { background: var(--bg2); }
-    .cat-item.active { background: var(--bg3); border-color: var(--border2); font-weight: 500; }
-    .cat-item .cat-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cat-item .cat-count { font-size: 11px; color: var(--muted); }
-    .cat-item .cat-del-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--muted); font-size: 11px; padding: 2px; line-height: 1;
-      opacity: 0; transition: opacity .15s, color .15s;
+    .cat-item.active { background: var(--bg3); border-color: var(--border2); }
+    .cat-main { display: flex; align-items: center; gap: 6px; padding: 6px 8px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .cat-item.active .cat-main { font-weight: 500; }
+
+    /* Farb-Dot */
+    .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .cat-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cat-count { font-size: 11px; color: var(--muted); }
+
+    /* ⋯ Menü-Button — erscheint beim Hover */
+    .cat-menu-btn {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      padding: 2px 4px; line-height: 1; border-radius: 4px;
+      font-size: 14px; letter-spacing: 1px;
+      opacity: 0; transition: opacity .15s, color .15s; flex-shrink: 0;
     }
-    .cat-item:hover .cat-del-btn { opacity: 1; }
-    .cat-item .cat-del-btn:hover { color: #E24B4A; }
+    .cat-item:hover .cat-menu-btn { opacity: 1; }
+    .cat-menu-btn:hover { color: var(--text); }
+
+    /* Dropdown-Menü */
+    .cat-dropdown { display: none; flex-direction: column; gap: 1px; padding: 5px; background: var(--bg); border: .5px solid var(--border2); border-radius: var(--rlg); margin: 0 6px 4px; }
+    .cat-dropdown.open { display: flex; }
+
+    .dd-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--rmd); font-size: 12px; color: var(--text); cursor: pointer; background: none; border: none; width: 100%; text-align: left; transition: background .15s; }
+    .dd-item:hover { background: var(--bg2); }
+    .dd-item.danger { color: #D85A30; }
+    .dd-item.danger:hover { background: #FAECE7; }
+    .dd-sep { height: .5px; background: var(--border); margin: 3px 0; }
+
+    /* Umbenennen-Zeile */
+    .cat-rename-row { display: none; gap: 5px; padding: 4px 6px 6px; align-items: center; }
+    .cat-rename-row.open { display: flex; }
+    .cat-rename-row input { flex: 1; height: 28px; padding: 0 7px; font-size: 12px; color: var(--text); background: var(--bg2); border: .5px solid var(--border2); border-radius: var(--rmd); outline: none; }
+    .cat-rename-row button { height: 28px; padding: 0 9px; font-size: 12px; background: var(--text); color: var(--bg); border: none; border-radius: var(--rmd); cursor: pointer; }
+
+    /* Farbpicker */
+    .color-picker-row { display: none; flex-wrap: wrap; gap: 6px; padding: 4px 8px 8px; }
+    .color-picker-row.open { display: flex; }
+    .color-swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .12s, border-color .12s; flex-shrink: 0; }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.selected { border-color: var(--text); }
+
+    /* Listen-Toggle */
+    .dd-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--rmd); font-size: 12px; color: var(--text); cursor: pointer; width: 100%; transition: background .15s; }
+    .dd-toggle:hover { background: var(--bg2); }
+    .toggle-track { width: 28px; height: 16px; border-radius: 8px; background: var(--bg3); border: .5px solid var(--border2); position: relative; transition: background .2s; flex-shrink: 0; }
+    .toggle-track.on { background: var(--check-bd); }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); transition: left .2s, background .2s; }
+    .toggle-track.on .toggle-thumb { left: 14px; background: #fff; }
 
     .sidebar-sep { height: .5px; background: var(--border); margin: 2px 0; }
-
     .restore-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
-    .restore-btn {
-      background: none; border: none; color: var(--muted);
-      font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0;
-    }
+    .restore-btn { background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0; }
     .restore-btn:hover { color: var(--text); }
 
-    /* ── Main ─────────────────────────────────────────────────────── */
+    /* ── Main ── */
     .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-    /* Formular + Stat-Kachel */
-    .top-strip {
-      display: flex; gap: 12px; align-items: flex-start;
-      padding: 1rem 1.25rem;
-      border-bottom: .5px solid var(--border);
-      background: var(--bg);
-    }
-
-    .form-card {
-      flex: 1;
-      background: var(--bg2);
-      border: .5px solid var(--border);
-      border-radius: var(--rlg);
-      padding: .875rem 1rem;
-    }
-
+    .top-strip { display: flex; gap: 12px; align-items: flex-start; padding: 1rem 1.25rem; border-bottom: .5px solid var(--border); background: var(--bg); }
+    .form-card { flex: 1; background: var(--bg2); border: .5px solid var(--border); border-radius: var(--rlg); padding: .875rem 1rem; }
     .form-head { font-size: 12px; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
-
     .form-grid { display: grid; grid-template-columns: 1fr 1fr 72px; gap: 8px; }
     .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
-    .field input, .field select {
-      width: 100%; height: 34px; padding: 0 9px;
-      font-size: 13px; color: var(--text);
-      background: var(--bg); border: .5px solid var(--border2);
-      border-radius: var(--rmd); outline: none; transition: border-color .15s;
-    }
+    .field input, .field select { width: 100%; height: 34px; padding: 0 9px; font-size: 13px; color: var(--text); background: var(--bg); border: .5px solid var(--border2); border-radius: var(--rmd); outline: none; transition: border-color .15s; }
     .field input:focus, .field select:focus { border-color: rgba(128,128,128,.5); }
-
-    .btn-add {
-      width: 100%; margin-top: 8px; height: 34px;
-      background: var(--text); color: var(--bg);
-      border: none; border-radius: var(--rmd);
-      font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity .15s;
-    }
+    .btn-add { width: 100%; margin-top: 8px; height: 34px; background: var(--text); color: var(--bg); border: none; border-radius: var(--rmd); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity .15s; }
     .btn-add:hover { opacity: .8; }
-
-    /* Stat-Kachel rechts: Anzahl Artikel in gewählter Kategorie */
-    .stat-card {
-      width: 110px; flex-shrink: 0;
-      background: var(--bg2); border: .5px solid var(--border);
-      border-radius: var(--rlg); padding: .875rem 1rem;
-      display: flex; flex-direction: column; justify-content: center;
-    }
+    .stat-card { width: 110px; flex-shrink: 0; background: var(--bg2); border: .5px solid var(--border); border-radius: var(--rlg); padding: .875rem 1rem; display: flex; flex-direction: column; justify-content: center; }
     .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; line-height: 1.35; }
     .stat-value { font-size: 28px; font-weight: 500; }
 
-    /* ── Content: Suche + Liste ───────────────────────────────────── */
-    .content {
-      flex: 1; overflow-y: auto;
-      padding: 1rem 1.25rem;
-      display: flex; flex-direction: column; gap: 12px;
-    }
-
-    #search {
-      width: 100%; height: 34px; padding: 0 10px; font-size: 13px;
-      color: var(--text); background: var(--bg);
-      border: .5px solid var(--border); border-radius: var(--rmd); outline: none;
-    }
+    .content { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 12px; }
+    #search { width: 100%; height: 34px; padding: 0 10px; font-size: 13px; color: var(--text); background: var(--bg); border: .5px solid var(--border); border-radius: var(--rmd); outline: none; }
     #search:focus { border-color: rgba(128,128,128,.5); }
 
-    /* Fortschrittsleiste (nur bei Listen-Kategorien) */
     .list-progress { display: none; align-items: center; gap: 10px; }
     .list-progress.visible { display: flex; }
     .progress-bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 2px; background: var(--check-bd); transition: width .3s; }
     .progress-lbl { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .list-header { font-size: 13px; font-weight: 500; padding-bottom: 4px; border-bottom: .5px solid var(--border); }
 
-    .list-header {
-      font-size: 13px; font-weight: 500; color: var(--text);
-      padding-bottom: 4px; border-bottom: .5px solid var(--border);
-    }
-
-    /* ── Artikelliste ─────────────────────────────────────────────── */
+    /* ── Artikelliste ── */
     .item-list { display: flex; flex-direction: column; gap: 5px; }
-
-    .item {
-      background: var(--bg); border: .5px solid var(--border);
-      border-radius: var(--rmd); padding: .65rem .9rem; transition: opacity .2s;
-    }
+    .item { background: var(--bg); border: .5px solid var(--border); border-radius: var(--rmd); padding: .65rem .9rem; transition: opacity .2s; }
     .item.checked { opacity: .5; }
     .item.checked .item-name { text-decoration: line-through; color: var(--muted); }
-
     .item-row { display: flex; align-items: center; gap: 9px; }
-
-    /* Custom Checkbox (nur bei Packliste / Einkaufsliste) */
     .check-wrap { flex-shrink: 0; width: 18px; height: 18px; cursor: pointer; display: none; }
     .check-wrap input { display: none; }
-    .check-box {
-      width: 18px; height: 18px; border-radius: 4px;
-      border: .5px solid var(--border2); background: var(--bg2);
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, border-color .15s;
-    }
+    .check-box { width: 18px; height: 18px; border-radius: 4px; border: .5px solid var(--border2); background: var(--bg2); display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s; }
     .check-box svg { opacity: 0; transition: opacity .15s; }
     .check-wrap input:checked ~ .check-box { background: var(--check-bg); border-color: var(--check-bd); }
     .check-wrap input:checked ~ .check-box svg { opacity: 1; }
-
     .item-name { flex: 1; font-size: 14px; font-weight: 500; }
-    .item-cat  { font-size: 11px; padding: 2px 7px; background: var(--bg2); color: var(--muted); border-radius: var(--rmd); white-space: nowrap; }
-
+    .item-cat { font-size: 11px; padding: 2px 7px; border-radius: var(--rmd); background: var(--bg2); color: var(--muted); white-space: nowrap; }
     .list-badge { font-size: 11px; padding: 2px 7px; border-radius: var(--rmd); font-weight: 500; white-space: nowrap; }
     .list-badge.pack { background: #E1F5EE; color: #085041; }
     .list-badge.shop { background: #E6F1FB; color: #0C447C; }
-
     .qty-ctrl { display: flex; align-items: center; gap: 3px; }
-    .qty-btn {
-      width: 24px; height: 24px; background: none;
-      border: .5px solid var(--border); border-radius: var(--rmd);
-      font-size: 14px; cursor: pointer; color: var(--text);
-      display: flex; align-items: center; justify-content: center; transition: background .12s;
-    }
+    .qty-btn { width: 24px; height: 24px; background: none; border: .5px solid var(--border); border-radius: var(--rmd); font-size: 14px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; transition: background .12s; }
     .qty-btn:hover { background: var(--bg2); }
     .qty-val { font-size: 13px; font-weight: 500; min-width: 24px; text-align: center; }
     .qty-val.low { color: var(--low); }
-
-    .icon-btn {
-      background: none; border: none; cursor: pointer; color: var(--muted);
-      padding: 3px; border-radius: 4px; display: flex; align-items: center; transition: color .15s;
-    }
+    .icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 3px; border-radius: 4px; display: flex; align-items: center; transition: color .15s; }
     .icon-btn.edit:hover { color: var(--text); }
-    .icon-btn.del:hover  { color: #E24B4A; }
-
-    /* Bearbeitungszeile */
-    .edit-row {
-      display: none; grid-template-columns: 1fr 1fr; gap: 7px;
-      margin-top: 9px; padding-top: 9px; border-top: .5px solid var(--border);
-    }
+    .icon-btn.del:hover { color: #E24B4A; }
+    .edit-row { display: none; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; padding-top: 9px; border-top: .5px solid var(--border); }
     .edit-row.open { display: grid; }
-    .edit-row input, .edit-row select {
-      height: 32px; padding: 0 8px; font-size: 12px; color: var(--text);
-      background: var(--bg2); border: .5px solid var(--border);
-      border-radius: var(--rmd); outline: none; width: 100%;
-    }
+    .edit-row input, .edit-row select { height: 32px; padding: 0 8px; font-size: 12px; color: var(--text); background: var(--bg2); border: .5px solid var(--border); border-radius: var(--rmd); outline: none; width: 100%; }
     .edit-row label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
     .edit-actions { display: flex; gap: 5px; margin-top: 7px; }
-    .btn-save {
-      flex: 1; height: 30px; background: var(--text); color: var(--bg);
-      border: none; border-radius: var(--rmd); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity .15s;
-    }
+    .btn-save { flex: 1; height: 30px; background: var(--text); color: var(--bg); border: none; border-radius: var(--rmd); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity .15s; }
     .btn-save:hover { opacity: .8; }
-    .btn-cancel {
-      flex: 1; height: 30px; background: none; border: .5px solid var(--border);
-      border-radius: var(--rmd); font-size: 12px; color: var(--text); cursor: pointer; transition: background .15s;
-    }
+    .btn-cancel { flex: 1; height: 30px; background: none; border: .5px solid var(--border); border-radius: var(--rmd); font-size: 12px; color: var(--text); cursor: pointer; transition: background .15s; }
     .btn-cancel:hover { background: var(--bg2); }
-
     .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 13px; }
 
-    /* ── Responsive: Mobile ───────────────────────────────────────── */
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       .body { flex-direction: column; }
-      .sidebar {
-        width: 100%; flex-direction: row; flex-wrap: wrap;
-        border-right: none; border-bottom: .5px solid var(--border);
-        padding: .75rem 1rem; gap: 8px;
-      }
-      .sidebar .cat-list { flex-direction: row; flex-wrap: wrap; overflow: visible; }
-      .sidebar .sidebar-title { width: 100%; }
-      .sidebar .new-cat-row, .sidebar .restore-hint { width: 100%; }
+      .sidebar { width: 100%; border-right: none; border-bottom: .5px solid var(--border); }
       .top-strip { flex-wrap: wrap; }
       .stat-card { width: 100%; }
       .form-grid { grid-template-columns: 1fr 1fr; }
@@ -303,32 +195,22 @@
 </head>
 <body>
 <div class="shell">
-
-  <!-- Topbar -->
   <div class="topbar"><h1>Inventar-Tracker</h1></div>
-
   <div class="body">
 
     <!-- ── Sidebar ── -->
     <aside class="sidebar">
-      <div class="sidebar-title">Kategorien verwalten</div>
-
-      <!-- Neue Kategorie hinzufügen -->
+      <div class="sidebar-title">Kategorien</div>
       <button class="btn-new-cat" id="btn-open-new-cat">+ Kategorie hinzufügen</button>
       <div class="new-cat-row" id="new-cat-row">
-        <input type="text" id="inp-new-cat" placeholder="Name..." maxlength="30" autocomplete="off" />
+        <input type="text" id="inp-new-cat" placeholder="Name..." maxlength="30" autocomplete="off"/>
         <button id="btn-cat-add">OK</button>
       </div>
       <div class="err-cat" id="err-cat"></div>
-
-      <!-- Klickbare Kategorie-Einträge -->
       <div class="cat-list" id="cat-list"></div>
-
-      <!-- Wiederherstellung gelöschter Standardkategorien -->
       <div id="restore-area" style="display:none">
         <div class="sidebar-sep"></div>
-        <div class="restore-hint">
-          Gelöscht: <span id="deleted-list"></span><br>
+        <div class="restore-hint">Gelöscht: <span id="deleted-list"></span><br>
           <button class="restore-btn" id="btn-restore">Alle wiederherstellen</button>
         </div>
       </div>
@@ -336,47 +218,27 @@
 
     <!-- ── Main ── -->
     <main class="main">
-
-      <!-- Formular + Stat-Kachel -->
       <div class="top-strip">
         <div class="form-card">
           <div class="form-head" id="form-head">Artikel hinzufügen</div>
           <div class="form-grid">
-            <div class="field">
-              <label for="inp-name">Name</label>
-              <input type="text" id="inp-name" placeholder="z.B. Laptop" autocomplete="off" />
-            </div>
-            <div class="field">
-              <label for="inp-cat">Kategorie</label>
-              <select id="inp-cat"></select>
-            </div>
-            <div class="field">
-              <label for="inp-qty">Menge</label>
-              <input type="number" id="inp-qty" min="0" value="1" />
-            </div>
+            <div class="field"><label>Name</label><input type="text" id="inp-name" placeholder="z.B. Laptop" autocomplete="off"/></div>
+            <div class="field"><label>Kategorie</label><select id="inp-cat"></select></div>
+            <div class="field"><label>Menge</label><input type="number" id="inp-qty" min="0" value="1"/></div>
           </div>
           <button class="btn-add" id="btn-add">+ Hinzufügen</button>
         </div>
-
-        <!-- Stat-Kachel: Anzahl Artikel in ausgewählter Kategorie -->
         <div class="stat-card">
           <div class="stat-label" id="stat-label">Alle<br>Kategorien</div>
           <div class="stat-value" id="stat-value">0</div>
         </div>
       </div>
-
-      <!-- Inhalt: Suche + Fortschritt + Liste -->
       <div class="content">
-        <input type="text" id="search" placeholder="Suchen…" autocomplete="off" />
-
-        <!-- Fortschrittsleiste (nur bei Packliste / Einkaufsliste) -->
+        <input type="text" id="search" placeholder="Suchen…" autocomplete="off"/>
         <div class="list-progress" id="list-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
           <span class="progress-lbl" id="progress-lbl">0 / 0</span>
         </div>
-
         <div class="list-header" id="list-header">Alle Artikel</div>
         <div class="item-list" id="item-list"></div>
         <div class="empty" id="empty" style="display:none">Keine Artikel gefunden.</div>
@@ -387,50 +249,128 @@
 
 <script>
   // ── 1. Konstanten ─────────────────────────────────────────────────────
-  const ALL_BUILTIN = [
-    'Packliste','Einkaufsliste',
-    'Elektronik','Büro','Werkzeug','Lebensmittel','Kleidung','Sonstiges'
-  ];
-  const LIST_CATS = new Set(['Packliste','Einkaufsliste']);
+  const ALL_BUILTIN = ['Packliste','Einkaufsliste','Elektronik','Büro','Werkzeug','Lebensmittel','Kleidung','Sonstiges'];
+  const LIST_CATS_DEFAULT = new Set(['Packliste','Einkaufsliste']);
+
+  // Farbpalette für den Picker (8 Farben)
+  const COLORS     = ['#888780','#1D9E75','#378ADD','#D85A30','#7F77DD','#D4537E','#BA7517','#639922'];
+  const COLOR_NAMES = ['Grau','Grün','Blau','Orange','Lila','Pink','Amber','Hellgrün'];
 
   // ── 2. State ──────────────────────────────────────────────────────────
-  let items=[], customCats=[], deletedBuiltin=[], activeCat='';
+  let items=[], customCats=[], deletedBuiltin=[];
+  // catMeta speichert pro Kategorie: { color: string, isList: boolean }
+  let catMeta = {};
   try {
     items          = JSON.parse(localStorage.getItem('inventar_items')    || '[]');
     customCats     = JSON.parse(localStorage.getItem('inventar_cats')     || '[]');
     deletedBuiltin = JSON.parse(localStorage.getItem('inventar_del_cats') || '[]');
+    catMeta        = JSON.parse(localStorage.getItem('inventar_catmeta')  || '{}');
   } catch(e) {}
+
+  let activeCat  = '';
+  let openMenuCat = null; // welches Kategorie-Menü aktuell offen ist
 
   function builtinActive() { return ALL_BUILTIN.filter(c => !deletedBuiltin.includes(c)); }
   function allCats()       { return [...builtinActive(), ...customCats]; }
+
+  // Checkbox-Funktion: entweder Standard-Listen-Kat oder per Toggle aktiviert
+  function isListCat(cat) {
+    if (LIST_CATS_DEFAULT.has(cat)) return true;
+    return catMeta[cat]?.isList === true;
+  }
+
+  // Kategorie-Farbe aus catMeta, Fallback grau
+  function getCatColor(cat) {
+    return catMeta[cat]?.color || '#888780';
+  }
 
   function save() {
     localStorage.setItem('inventar_items',    JSON.stringify(items));
     localStorage.setItem('inventar_cats',     JSON.stringify(customCats));
     localStorage.setItem('inventar_del_cats', JSON.stringify(deletedBuiltin));
+    localStorage.setItem('inventar_catmeta',  JSON.stringify(catMeta));
   }
-  function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-  function esc(s)     { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Alle offenen Dropdown-Menüs schließen
+  function closeAllMenus() {
+    document.querySelectorAll('.cat-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.cat-rename-row.open').forEach(r => r.classList.remove('open'));
+    document.querySelectorAll('.color-picker-row.open').forEach(r => r.classList.remove('open'));
+    openMenuCat = null;
+  }
 
   // ── 3. Sidebar rendern ────────────────────────────────────────────────
   function renderSidebar() {
     const cats = allCats();
     const list = document.getElementById('cat-list');
 
-    // "Alle"-Eintrag + eine Zeile pro Kategorie
-    list.innerHTML = [
-      `<div class="cat-item${activeCat==='' ? ' active' : ''}" data-cat="">
+    // "Alle"-Eintrag (kein Menü-Button)
+    const allEntry = `<div class="cat-item${activeCat===''?' active':''}" data-cat="">
+      <div class="cat-main">
+        <span class="cat-dot" style="background:var(--muted)"></span>
         <span class="cat-name">Alle</span>
         <span class="cat-count">${items.length}</span>
-      </div>`
-    ].concat(cats.map(c => {
-      const count = items.filter(i => i.cat === c).length;
-      return `<div class="cat-item${activeCat===c ? ' active' : ''}" data-cat="${esc(c)}">
-        <span class="cat-name">${esc(c)}</span>
-        <span class="cat-count">${count}</span>
-        <button class="cat-del-btn" data-del="${esc(c)}" title="Löschen">&#x2715;</button>
+      </div>
+    </div>`;
+
+    // Einträge pro Kategorie mit ⋯-Menü
+    const catEntries = cats.map(c => {
+      const count    = items.filter(i => i.cat === c).length;
+      const color    = getCatColor(c);
+      const isList   = isListCat(c);
+      const menuOpen = openMenuCat === c;
+
+      return `<div class="cat-item${activeCat===c?' active':''}" data-cat="${esc(c)}">
+        <div class="cat-main">
+          <span class="cat-dot" style="background:${color}"></span>
+          <span class="cat-name">${esc(c)}</span>
+          <span class="cat-count">${count}</span>
+          <button class="cat-menu-btn" data-menu="${esc(c)}" title="Einstellungen">&#8943;</button>
+        </div>
+
+        <!-- Dropdown: klappt inline auf, kein fixed-Positioning -->
+        <div class="cat-dropdown${menuOpen?' open':''}" id="menu-${esc(c)}">
+
+          <!-- Umbenennen -->
+          <button class="dd-item" data-action="rename-open" data-cat="${esc(c)}">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3L11 2z"/></svg>
+            Umbenennen
+          </button>
+          <div class="cat-rename-row" id="rename-${esc(c)}">
+            <input type="text" class="rename-inp" value="${esc(c)}" maxlength="30" data-oldcat="${esc(c)}"/>
+            <button data-action="rename-save" data-cat="${esc(c)}">OK</button>
+          </div>
+
+          <!-- Farbe wählen -->
+          <button class="dd-item" data-action="color-open" data-cat="${esc(c)}">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2" fill="currentColor" stroke="none"/></svg>
+            Farbe wählen
+          </button>
+          <div class="color-picker-row" id="colors-${esc(c)}">
+            ${COLORS.map((col,i) => `<div class="color-swatch${color===col?' selected':''}" style="background:${col}" data-action="set-color" data-cat="${esc(c)}" data-color="${col}" title="${COLOR_NAMES[i]}"></div>`).join('')}
+          </div>
+
+          <!-- Checkboxen-Toggle -->
+          <div class="dd-toggle" data-action="toggle-list" data-cat="${esc(c)}">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,5 6,9 14,3"/><line x1="2" y1="11" x2="10" y2="11"/><line x1="2" y1="14" x2="7" y2="14"/></svg>
+            <span style="flex:1">Checkboxen</span>
+            <div class="toggle-track${isList?' on':''}"><div class="toggle-thumb"></div></div>
+          </div>
+
+          <div class="dd-sep"></div>
+
+          <!-- Löschen -->
+          <button class="dd-item danger" data-action="cat-del" data-cat="${esc(c)}">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4 13,4"/><path d="M5 4V3h6v1"/><rect x="4" y="4" width="8" height="10" rx="1"/></svg>
+            Löschen
+          </button>
+        </div>
       </div>`;
-    })).join('');
+    }).join('');
+
+    list.innerHTML = allEntry + catEntries;
 
     // Wiederherstellungs-Bereich
     const restoreArea = document.getElementById('restore-area');
@@ -439,22 +379,21 @@
       restoreArea.style.display = 'block';
     } else { restoreArea.style.display = 'none'; }
 
-    // Formular-Dropdown synchron halten
-    const selCat  = document.getElementById('inp-cat');
-    const prevCat = selCat.value;
-    selCat.innerHTML = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-    if (cats.includes(prevCat)) selCat.value = prevCat;
-    else if (activeCat && cats.includes(activeCat)) selCat.value = activeCat;
+    // Formular-Dropdown synchron
+    const selCat   = document.getElementById('inp-cat');
+    const prevCat  = selCat.value;
+    const allNow   = allCats();
+    selCat.innerHTML = allNow.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if (allNow.includes(prevCat)) selCat.value = prevCat;
+    else if (activeCat && allNow.includes(activeCat)) selCat.value = activeCat;
   }
 
-  // ── 4. Stat-Kachel + Überschriften ───────────────────────────────────
-  // Das Kästchen rechts zeigt immer die Artikelzahl der aktiven Kategorie.
+  // ── 4. Stat-Kachel ────────────────────────────────────────────────────
   function updateStat() {
     const labelEl = document.getElementById('stat-label');
     const valEl   = document.getElementById('stat-value');
     const headEl  = document.getElementById('form-head');
     const hdrEl   = document.getElementById('list-header');
-
     if (activeCat === '') {
       labelEl.innerHTML  = 'Alle<br>Kategorien';
       valEl.textContent  = items.length;
@@ -471,7 +410,7 @@
   // ── 5. Fortschrittsleiste ─────────────────────────────────────────────
   function updateProgress() {
     const prog = document.getElementById('list-progress');
-    if (!LIST_CATS.has(activeCat)) { prog.classList.remove('visible'); return; }
+    if (!isListCat(activeCat) || activeCat === '') { prog.classList.remove('visible'); return; }
     prog.classList.add('visible');
     const inCat   = items.filter(i => i.cat === activeCat);
     const checked = inCat.filter(i => i.checked).length;
@@ -499,7 +438,7 @@
     } else {
       empty.style.display = 'none';
       filtered.forEach(item => {
-        const isListItem = LIST_CATS.has(item.cat);
+        const isList = isListCat(item.cat);
         const el = document.createElement('div');
         el.className = 'item' + (item.checked ? ' checked' : '');
         el.dataset.id = item.id;
@@ -508,37 +447,36 @@
           `<option value="${esc(c)}"${c === item.cat ? ' selected' : ''}>${esc(c)}</option>`
         ).join('');
 
-        const badgeClass = item.cat === 'Packliste' ? 'pack' : 'shop';
+        const catColor = getCatColor(item.cat);
+
+        // Badge: Standard-Listen-Kategorien bekommen festes Design,
+        // custom Listen-Kats bekommen die gewählte Farbe
+        const badgeHtml = LIST_CATS_DEFAULT.has(item.cat)
+          ? `<span class="list-badge ${item.cat === 'Packliste' ? 'pack' : 'shop'}">${esc(item.cat)}</span>`
+          : isList
+            ? `<span class="item-cat" style="background:${catColor}20;color:${catColor}">${esc(item.cat)}</span>`
+            : `<span class="item-cat">${esc(item.cat)}</span>`;
 
         el.innerHTML = `
           <div class="item-row">
-            <label class="check-wrap" style="display:${isListItem ? 'block' : 'none'}"
-              title="${item.checked ? 'Abhaken rückgängig' : 'Als erledigt markieren'}">
+            <label class="check-wrap" style="display:${isList ? 'block' : 'none'}">
               <input type="checkbox" data-action="check" data-id="${item.id}"${item.checked ? ' checked' : ''}>
               <div class="check-box">
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none"
-                     stroke="var(--check-tick)" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
+                     stroke="var(--check-tick)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="2,6 5,9 10,3"/>
                 </svg>
               </div>
             </label>
             <span class="item-name">${esc(item.name)}</span>
-            ${isListItem
-              ? `<span class="list-badge ${badgeClass}">${esc(item.cat)}</span>`
-              : `<span class="item-cat">${esc(item.cat)}</span>`
-            }
+            ${badgeHtml}
             <div class="qty-ctrl">
               <button class="qty-btn" data-action="dec" data-id="${item.id}">&#x2212;</button>
               <span class="qty-val${item.qty < 5 ? ' low' : ''}">${item.qty}</span>
               <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
             </div>
             <button class="icon-btn edit" data-action="edit" data-id="${item.id}" title="Bearbeiten">
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
-                   stroke="currentColor" stroke-width="1.5"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 2l3 3-9 9H2v-3L11 2z"/>
-              </svg>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3L11 2z"/></svg>
             </button>
             <button class="icon-btn del" data-action="del" data-id="${item.id}" title="Löschen">&#x2715;</button>
           </div>
@@ -548,12 +486,11 @@
             <div><label>Menge</label><input type="number" class="edit-qty" value="${item.qty}" min="0"/></div>
             <div style="display:flex;align-items:flex-end">
               <div class="edit-actions" style="width:100%">
-                <button class="btn-save"   data-action="save"   data-id="${item.id}">Speichern</button>
+                <button class="btn-save" data-action="save" data-id="${item.id}">Speichern</button>
                 <button class="btn-cancel" data-action="cancel" data-id="${item.id}">Abbrechen</button>
               </div>
             </div>
-          </div>
-        `;
+          </div>`;
         list.appendChild(el);
       });
     }
@@ -565,27 +502,102 @@
 
   // ── 7. Sidebar-Klicks ─────────────────────────────────────────────────
   document.getElementById('cat-list').addEventListener('click', e => {
-    // Kategorie löschen
-    const delBtn = e.target.closest('.cat-del-btn');
-    if (delBtn) {
-      const cat = delBtn.dataset.del;
-      if (items.some(i => i.cat === cat)) {
-        document.getElementById('err-cat').textContent = `"${cat}" wird noch verwendet.`; return;
-      }
-      document.getElementById('err-cat').textContent = '';
-      if (ALL_BUILTIN.includes(cat)) deletedBuiltin.push(cat);
-      else customCats = customCats.filter(c => c !== cat);
-      if (activeCat === cat) activeCat = '';
-      save(); render(); return;
+
+    // ⋯ Menü-Button: Dropdown öffnen/schließen
+    const menuBtn = e.target.closest('.cat-menu-btn');
+    if (menuBtn) {
+      e.stopPropagation();
+      const cat = menuBtn.dataset.menu;
+      if (openMenuCat === cat) { closeAllMenus(); }
+      else { closeAllMenus(); openMenuCat = cat; document.getElementById(`menu-${cat}`)?.classList.add('open'); }
+      return;
     }
-    // Kategorie auswählen (Filter)
+
+    // Aktionen im Dropdown
+    const actionEl = e.target.closest('[data-action]');
+    if (actionEl) {
+      e.stopPropagation();
+      const { action, cat } = actionEl.dataset;
+
+      if (action === 'rename-open') {
+        const row = document.getElementById(`rename-${cat}`);
+        const isOpen = row.classList.contains('open');
+        document.querySelectorAll('.cat-rename-row.open').forEach(r => r.classList.remove('open'));
+        document.querySelectorAll('.color-picker-row.open').forEach(r => r.classList.remove('open'));
+        if (!isOpen) { row.classList.add('open'); row.querySelector('input').focus(); }
+        return;
+      }
+
+      if (action === 'rename-save') {
+        const row     = document.getElementById(`rename-${cat}`);
+        const newName = row.querySelector('input').value.trim();
+        if (!newName) return;
+        if (allCats().filter(c => c !== cat).map(c => c.toLowerCase()).includes(newName.toLowerCase())) {
+          document.getElementById('err-cat').textContent = 'Name existiert bereits.'; return;
+        }
+        document.getElementById('err-cat').textContent = '';
+        // Artikel umhängen
+        items.forEach(i => { if (i.cat === cat) i.cat = newName; });
+        // Meta übertragen
+        if (catMeta[cat]) { catMeta[newName] = catMeta[cat]; delete catMeta[cat]; }
+        const idx = customCats.indexOf(cat);
+        if (idx > -1) customCats[idx] = newName;
+        if (activeCat === cat) activeCat = newName;
+        closeAllMenus();
+        save(); render(); return;
+      }
+
+      if (action === 'color-open') {
+        const row    = document.getElementById(`colors-${cat}`);
+        const isOpen = row.classList.contains('open');
+        document.querySelectorAll('.color-picker-row.open').forEach(r => r.classList.remove('open'));
+        document.querySelectorAll('.cat-rename-row.open').forEach(r => r.classList.remove('open'));
+        if (!isOpen) row.classList.add('open');
+        return;
+      }
+
+      if (action === 'set-color') {
+        if (!catMeta[cat]) catMeta[cat] = {};
+        catMeta[cat].color = actionEl.dataset.color;
+        save(); render(); return;
+      }
+
+      if (action === 'toggle-list') {
+        if (!catMeta[cat]) catMeta[cat] = {};
+        catMeta[cat].isList = !isListCat(cat);
+        // Beim Deaktivieren: alle checked-Zustände in dieser Kategorie zurücksetzen
+        if (!catMeta[cat].isList) items.forEach(i => { if (i.cat === cat) i.checked = false; });
+        save(); render(); return;
+      }
+
+      if (action === 'cat-del') {
+        if (items.some(i => i.cat === cat)) {
+          document.getElementById('err-cat').textContent = `"${cat}" wird noch verwendet.`; return;
+        }
+        document.getElementById('err-cat').textContent = '';
+        if (ALL_BUILTIN.includes(cat)) deletedBuiltin.push(cat);
+        else customCats = customCats.filter(c => c !== cat);
+        if (activeCat === cat) activeCat = '';
+        closeAllMenus();
+        save(); render(); return;
+      }
+      return;
+    }
+
+    // Klick auf Kategorie-Eintrag = Filter setzen
     const catItem = e.target.closest('.cat-item');
-    if (catItem) {
+    if (catItem && !e.target.closest('.cat-dropdown')) {
+      closeAllMenus();
       activeCat = catItem.dataset.cat;
       const sel = document.getElementById('inp-cat');
       if (activeCat && [...sel.options].some(o => o.value === activeCat)) sel.value = activeCat;
       render();
     }
+  });
+
+  // Klick außerhalb schließt alle Menüs
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.cat-item')) closeAllMenus();
   });
 
   // ── 8. Neue Kategorie ─────────────────────────────────────────────────
@@ -600,10 +612,8 @@
     const err  = document.getElementById('err-cat');
     const name = inp.value.trim();
     if (!name) { err.textContent = 'Name eingeben.'; return; }
-    if (allCats().map(c => c.toLowerCase()).includes(name.toLowerCase())) {
-      err.textContent = 'Existiert bereits.'; return; }
-    if (deletedBuiltin.map(c => c.toLowerCase()).includes(name.toLowerCase())) {
-      err.textContent = 'Tipp: Unten wiederherstellen.'; return; }
+    if (allCats().map(c => c.toLowerCase()).includes(name.toLowerCase())) { err.textContent = 'Existiert bereits.'; return; }
+    if (deletedBuiltin.map(c => c.toLowerCase()).includes(name.toLowerCase())) { err.textContent = 'Tipp: Unten wiederherstellen.'; return; }
     err.textContent = '';
     customCats.push(name);
     save(); inp.value = '';
@@ -623,7 +633,7 @@
     save(); render();
   });
 
-  // ── 10. Artikel-Aktionen (Event-Delegation) ───────────────────────────
+  // ── 10. Artikel-Aktionen ──────────────────────────────────────────────
   document.getElementById('item-list').addEventListener('click', e => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
@@ -643,9 +653,7 @@
       if (action === 'dec' && item.qty > 0) item.qty -= 1;
       save(); render();
     } else if (action === 'edit') {
-      document.querySelectorAll('.edit-row.open').forEach(r => {
-        if (r.id !== `edit-${id}`) r.classList.remove('open');
-      });
+      document.querySelectorAll('.edit-row.open').forEach(r => { if (r.id !== `edit-${id}`) r.classList.remove('open'); });
       document.getElementById(`edit-${id}`)?.classList.toggle('open');
     } else if (action === 'save') {
       const row     = document.getElementById(`edit-${id}`);
@@ -656,7 +664,7 @@
       const item = items.find(i => i.id === id);
       if (item) {
         item.name = newName; item.cat = newCat; item.qty = newQty;
-        if (!LIST_CATS.has(newCat)) item.checked = false;
+        if (!isListCat(newCat)) item.checked = false;
       }
       save(); render();
     } else if (action === 'cancel') {
