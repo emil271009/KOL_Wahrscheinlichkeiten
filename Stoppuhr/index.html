@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intervall-Timer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Zum Inhalt springen</a>
+    <header class="site-header">
+      <h1>Intervall-Timer</h1>
+      <p class="tagline">
+        Eigene Abläufe für Lernen oder Sport – Intervalle definieren, speichern,
+        starten.
+      </p>
+    </header>
+
+    <main id="main" class="layout">
+      <section class="panel panel--editor" aria-labelledby="editor-heading">
+        <h2 id="editor-heading">Ablauf bearbeiten</h2>
+
+        <div class="field-row">
+          <label for="flow-name">Ablaufname</label>
+          <input
+            id="flow-name"
+            type="text"
+            autocomplete="off"
+            placeholder="z. B. Lernblock vormittags"
+          />
+        </div>
+
+        <div class="field-row field-row--inline">
+          <label for="saved-flows">Gespeicherte Abläufe</label>
+          <div class="saved-flows-row">
+            <select id="saved-flows" aria-describedby="saved-flows-hint">
+              <option value="">— Auswählen —</option>
+            </select>
+            <button type="button" id="btn-load" class="btn btn--secondary">
+              Laden
+            </button>
+            <button type="button" id="btn-delete-saved" class="btn btn--danger">
+              Löschen
+            </button>
+          </div>
+          <p id="saved-flows-hint" class="hint">
+            Laden ersetzt den Editor. Löschen entfernt den Eintrag dauerhaft.
+          </p>
+        </div>
+
+        <div class="steps-toolbar">
+          <button type="button" id="btn-add-step" class="btn btn--primary">
+            Intervall hinzufügen
+          </button>
+          <button type="button" id="btn-save-flow" class="btn btn--primary">
+            Ablauf speichern
+          </button>
+        </div>
+
+        <p id="editor-status" class="status" role="status" aria-live="polite"></p>
+
+        <div class="steps-head" aria-hidden="true">
+          <span>Bezeichnung</span>
+          <span>Min</span>
+          <span>Sek</span>
+          <span class="steps-head__actions">Aktionen</span>
+        </div>
+        <ul id="steps-list" class="steps-list"></ul>
+      </section>
+
+      <section class="panel panel--run" aria-labelledby="run-heading">
+        <h2 id="run-heading">Lauf</h2>
+
+        <div
+          id="timer-display"
+          class="timer-display"
+          role="timer"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span class="timer-display__value" id="timer-remaining">00:00</span>
+        </div>
+
+        <p class="timer-meta">
+          <span id="timer-step-label" class="timer-meta__label">—</span>
+          <span id="timer-step-progress" class="timer-meta__progress"></span>
+        </p>
+        <p class="timer-next">
+          <span class="timer-next__label">Danach:</span>
+          <span id="timer-next-label" class="timer-next__value">—</span>
+        </p>
+
+        <p id="run-status" class="status" role="status" aria-live="polite"></p>
+
+        <div class="run-actions">
+          <button type="button" id="btn-start" class="btn btn--primary">
+            Start
+          </button>
+          <button type="button" id="btn-pause" class="btn btn--secondary" hidden>
+            Pause
+          </button>
+          <button type="button" id="btn-resume" class="btn btn--primary" hidden>
+            Fortsetzen
+          </button>
+          <button type="button" id="btn-stop" class="btn btn--secondary" hidden>
+            Stop
+          </button>
+          <button type="button" id="btn-skip" class="btn btn--secondary" hidden>
+            Schritt überspringen
+          </button>
+        </div>
+
+        <p class="kbd-hint" title="Tastaturkürzel">
+          <kbd>Enter</kbd> Start (wenn Fokus nicht in einem Feld),
+          <kbd>Esc</kbd> Stop
+        </p>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
