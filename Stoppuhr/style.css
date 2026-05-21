@@ -1,3 +1,5 @@
+/* Intervall-Timer – klare Typo, Kontrast, Fokus */
+
 :root {
   --bg: #0f1419;
   --surface: #1a222d;
@@ -108,6 +110,10 @@ body {
   flex-direction: column;
   gap: 0.35rem;
   margin-bottom: 1rem;
+}
+
+.field-row--inline .saved-flows-row {
+  margin-top: 0.15rem;
 }
 
 .field-row label {
